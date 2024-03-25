@@ -1,14 +1,53 @@
 ---
-title: "Validation Analytics Guideline"
-output: pdf_document
-date: "2024"
+title: \vspace{1in}\LARGE Validation Analytics Guideline
+date: \LARGE 2024
+
+header-includes:
+  - \usepackage{graphicx}
+  - \usepackage{fancyhdr}
+  - \fancyfoot[C]{\includegraphics[width=6.4in]{./www/Logo/footer.png}}
+  - \pagestyle{fancy}
+  - \fancyhead[RO]{TRANSFORM - Validation}
+  - \fancyfoot[RO]{\thepage}
+  - \usepackage{titling}
+  - \pretitle{\begin{center}
+  - \vspace{1.5in}{\includegraphics[width=5in,height=5in]{./www/Logo/EiA_logo.png}\LARGE\\}}
+  - \posttitle{\end{center}}
+ # - \usepackage{lipsum}
+  - \pagenumbering{gobble}
+
+output: 
+  pdf_document:
+  toc: true
+  toc_depth: 3
+  number_sections: true
+  theme: united
+  highlight: tango
+  fig_caption: true
+
+
 ---
 
+\newpage 
+\pagenumbering{arabic}
+\tableofcontents
+\newpage
+
+
+
+
+
+
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE, warning=FALSE, comment = NA)
+#\newpage
+#\listoffigures
+#\newpage
+#\listoftables
+
 ```
 
-## 
+# Introduction
 
 
 
@@ -16,10 +55,15 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```
 
-## 
+## gg
 
 ```{r intro , echo=FALSE}
 
+```
+
+\vfill
+```{r pic ,out.width="100%", echo=FALSE}
+knitr::include_graphics("./www/Logo/sfooter.png")
 ```
 
 
