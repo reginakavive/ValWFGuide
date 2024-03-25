@@ -1,0 +1,25 @@
+---
+title: "Validation Analytics Guideline"
+output: pdf_document
+date: "2024"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 
+
+
+
+```{r toc}
+
+```
+
+## 
+
+```{r intro , echo=FALSE}
+
+```
+
+
