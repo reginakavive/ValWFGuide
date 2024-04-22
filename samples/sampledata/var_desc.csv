@@ -1,0 +1,18 @@
+﻿KPI ,Detailed Indicator,Unit,Required Variables Description
+Land productivity and its stability,Primary product harvested yield (referred to as yield),kg/ha,Weight of primary harvested crop product
+,,,Area of the plot where the trial was conducted
+,Secondary product harvested yield,kg/ha,Weight of secondary harvested product
+,,,Area of the plot where the trial was conducted
+,Profit or cost–benefit balance,US$/ha or Local currency/ha,Gross revenue
+,,,Total production cost
+Resource use efficiency,"Nutrient-use efficiency (e.g. nitrogen, phosphorus)",kg (yield)/kg (nutrient input)   or kg (nutrient in yield)/kg (nutrient input),Weight of primary harvested crop product
+,,,Area of the plot where the trial was conducted
+,,,Nutrient applied to a crop via inorganic fertilizer
+,,,Nutrient applied to the crop via organic input
+,Water productivity,kg (yield)/m3 (water input [rainfall + irrigation]),Weight of primary harvested crop product
+,,,Area of the plot where the trial was conducted
+,,,Total amount of irrigated water to the plot
+,,,Total amount of rainfall water to the plot
+,Labor productivity,kg (yield)/ work-day,Weight of primary harvested crop product
+,,,Area of the plot where the trial was conducted
+,,,Total number of person-day dedicated to the trial

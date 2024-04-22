@@ -18,7 +18,7 @@ them2 <- theme(panel.background = element_rect(fill = "white"), # bg of the pane
                axis.line.x = element_blank(),
                axis.line.y = element_blank())
 #Pie
-dataHm.pp1 <- read.csv("sample_yield_data.csv")
+dataHm.pp1 <- read.csv("./samples/sampledata/sample_yield_data.csv")
 subset_df <- dataHm.pp1[, c("HHID", "stateEA","riceSystem","ZCC_Yha","SSR_Yha","BRR_Yha", "eSSR","incrSSR" )]
 subset_df<-distinct(subset_df)
 x <- (subset_df[! is.na(subset_df$eSSR),] )$eSSR
@@ -40,7 +40,7 @@ plot_ly(data = ds,
   layout(title = 'Effects on grain yield of SR vs BR')
 
 #Bars
-dataHNm.nn1 <- read.csv("sample_nue_data.csv")
+dataHNm.nn1 <- read.csv("./samples/sampledata/sample_nue_data.csv")
 nue_df <- dataHNm.nn1[, c( "stateEA", "plot"   ,     "useN" )]
 nue_df<-distinct(nue_df)
 nue_by_state <- nue_df %>%
