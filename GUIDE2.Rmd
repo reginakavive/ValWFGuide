@@ -51,7 +51,7 @@ The analytics guidelines document is designed to offer a understanding of divers
 The use case is expected to run the analysis parallel to ascertain the validity of the data provided.
 
 
-The KPI documentation (Saito et al., 2021) is accessible via this link: https://cgspace.cgiar.org/items/624c2bf3-6887-4036-b46f-19bb6f223705. The KPI guide provides a description of various KPIs and how to calculate them. They cover land productivity and its stability, resource use efficiency and soil health and are used across geographies, farming systems, and research and development (R&D) stages (like validation and piloting stages) (Saito et al., 2021)
+The KPI documentation (Saito et al., 2022) is accessible via [<span style="color: red;font-weight: bold;">this link</span>](https://cgspace.cgiar.org/items/624c2bf3-6887-4036-b46f-19bb6f223705). The KPI guide provides a description of various KPIs and how to calculate them. They cover land productivity and its stability, resource use efficiency and soil health and are used across geographies, farming systems, and research and development (R&D) stages (like validation and piloting stages) (Saito et al., 2022)
 
 
 The graphic below shows the various stages of the data flow during validation exercise. The highlighted section (in red) is what will be highlighted in detail in this analytics document.
@@ -81,7 +81,7 @@ List of main KPIs considered in EiA Use Cases:
 
 Yield, Yield stability, Profit, Nutrient-use efficiency, NUE for N, NUE for P, NUE for K, Water productivity, Labor productivity, Soil organic carbon, yield-scaled GHGs, Product quality. (Kreye et al., 2023).
 
-Below are required parameters for different KPI calculations (Saito et al., 2021).
+Below are required parameters for different KPI calculations (Saito et al., 2022).
 
 
 ```{r table-kpipar, echo=FALSE, warning=FALSE, message=FALSE,comment = NA }
@@ -95,7 +95,7 @@ knitr::kable(kpipar, caption = "Table of Required KPI Variables")
 ### Calculate KPIs
 Different use cases measure different KPIs.
 
-According to the KPIs of interest one can easily calculate KPI values as described by (Saito et al., 2021).
+According to the KPIs of interest one can easily calculate KPI values as described by (Saito et al., 2022).
 
 The R function below can help to easily achieve this with the right parameters (ref for R function?).
 
@@ -166,7 +166,7 @@ KPI <- function(df) {
   }
   
   #2 - Secondary product harvested yield
-  SPHY <- function(X, Y) {
+  SPHY<- function(X, Y) {
     if(!is.null(X) & !is.null(Y)) {
       if(!is.na(X) & !is.na(Y)){
         if(is.numeric(X) & is.numeric(Y)) {
@@ -528,40 +528,40 @@ KPI <- function(df) {
     temp <- temp[1,] 
     
     result[[i]] <- temp %>% 
-      mutate(
+      mutate(  
         PPHY=PPHY(temp$pmass, temp$psize),  
         
-        SPHY=SPHY(temp$smass, temp$psize),
+        SPHY=SPHY(temp$smass, temp$psize),  
         
         SYI=SYI(temp$Syield, temp$Sdyield, temp$Smyield),  
         
         CBB=CBB(temp$grev, temp$cost),  
         
-        GR=GR(temp$Pyield, temp$Psale, temp$Syield, temp$Ssale),  
+        GR=GR(temp$Pyield, temp$Psale, temp$Syield, temp$Ssale),   
         
-        AGCB=AGCB(temp$Hprodprice, temp$Yield, temp$Pcost),  
+        AGCB=AGCB(temp$Hprodprice, temp$Yield, temp$Pcost),   
         
-        PFPN=PFPN(temp$Pyield, temp$Ninfert, temp$Norg),
+        PFPN=PFPN(temp$Pyield, temp$Ninfert, temp$Norg),  
         
-        PFPN=NUE(temp$pmass, temp$psize, temp$niti, temp$nito),  
+        PFPN=NUE(temp$pmass, temp$psize, temp$niti, temp$nito),   
         
-        PFPP=PUE(temp$pmass, temp$psize, temp$phoi, temp$phoo),  
+        PFPP=PUE(temp$pmass, temp$psize, temp$phoi, temp$phoo),   
         
-        PFPK=KUE(temp$pmass, temp$psize, temp$poti, temp$poto),  
+        PFPK=KUE(temp$pmass, temp$psize, temp$poti, temp$poto),   
         
-        PFPS=SUE(temp$pmass, temp$psize, temp$soti, temp$soto),  
+        PFPS=SUE(temp$pmass, temp$psize, temp$soti, temp$soto),   
         
-        NB=NB(temp$Nyield, temp$Ninfert, temp$Norg),  
+        NB=NB(temp$Nyield, temp$Ninfert, temp$Norg),   
         
-        WUE=WUE(temp$Pmass, temp$Psize, temp$wirr, temp$wrain), 
+        WUE=WUE(temp$Pmass, temp$Psize, temp$wirr, temp$wrain),  
         
         LP=LP(temp$Pmass, temp$Psize, temp$tlabor),  
         
-        Input=Input(temp$Mcomp, temp$Ccon, temp$Rcresid, temp$Cresid, temp$Rdmass, temp$Cconh),  
+        Input=Input(temp$Mcomp, temp$Ccon, temp$Rcresid, temp$Cresid, temp$Rdmass, temp$Cconh),   
         
         RDM=RDM(temp$Tdmass, temp$Shoot, temp$Root),  
         
-        TADMC=TADMC(temp$Yield, temp$Cspec)
+        TADMC=TADMC(temp$Yield, temp$Cspec)  
         ) %>%   
       select(UseCase_HHID, PPHY:TADMC) %>% 
       separate(UseCase_HHID, sep = "_", into = c("UseCase","HHID","treat"))
@@ -569,11 +569,15 @@ KPI <- function(df) {
   return(bind_rows(result))
   
   detach("package:tidyverse")
+  
+
 }
 ```
 
 
 ## Visualization
+
+Visualizations as in the [<span style="color: red;font-weight: bold;">impact dashboard</span>](https://eia-transform.shinyapps.io/impact/).  
 
 Description of terms used:
 
@@ -587,6 +591,8 @@ Change: change in yield, profit or other KPI being measured. (Treatment 1 - Trea
 
 
 Description of how these treatments are implemented is detailed in Kreye et. al. 2023 
+
+For the visualizations, we have a general and detailed view.
 
 General view indicates the simple descriptive analysis of the data to show distribution (via bar chart) and difference in the different treatments (via pie chart).
 
@@ -1097,6 +1103,30 @@ knitr::kable(addonpar, caption = "Table of Required Add-On Variables")
 
 Coming soon...
 
+
+
+\newpage
+
+# References
+
+C.Kreye, R.Flor, R.Manners, C.Aubert , 2023. Protocol for the validation exercise. Excellence in Agronomy Initiative, CGIAR, 21p.
+
+Saito K, Johnson J-M, Hauser S, Corbeels M, Devkota M and Casimero M. 2022. Guideline for measuring agronomic gain key performance indicators in on-farm trials, v. 1. Africa Rice Center, Abidjan, Côte d’Ivoire.
+
+
+\newpage
+
+# Contributors
+
+Regina Kilwenge (International Institute of Tropical Agriculture [IITA]), Eduardo Garcia (International Institute of Tropical Agriculture [IITA]) and Christine Kreye (International Institute of Tropical Agriculture [IITA])
+
+This work was financially supported by the Excellence in Agronomy for Sustainable Intensification and Climate Change Adaptation Initiative.
+
+
+Suggested Citation: 
+
+
+© International Institute of Tropical Agriculture (IITA) 2024
 
 \vfill
 ```{r pic ,out.width="100%", echo=FALSE}
