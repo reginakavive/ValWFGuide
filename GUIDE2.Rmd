@@ -949,7 +949,7 @@ p1+geom_point(size=1)+
   xlab("Yield difference (TRT1 - TRT2) (t/ha)") +
   labs(title="Comparison of yields for site-specific (TRT1) and control (TRT2)")+
   ylab("Cumulative probability") +
-  facet_wrap(~stateEA)+
+  facet_wrap(~Region)+
   them2
 
 ```
