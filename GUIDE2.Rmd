@@ -65,23 +65,15 @@ knitr::include_graphics("./www/Logo/intro.png")
 
 Use Cases must perform a validation exercise to test the benefits of their Minimum Viable Product (MVP). For more information on the protocol for validation exercises see Kreye et al., 2023. 
 
-The following is required before any analysis and visualization can be performed on the validation data.
+The following steps are required before any analysis and visualization can be performed on the validation data.
 
-## Data Cleaning
-The use case team performs data cleaning calculates required standard parameters.
-
-
-## Organising data 
-Different KPIs require different variables and are explained in the table below with their description and required units. These variables can be generated from the validation data.
-
-
-### KPI Parameters
+## KPI Parameters
 
 List of main KPIs considered in EiA Use Cases: 
 
 Yield, Yield stability, Profit, Nutrient-use efficiency, NUE for N, NUE for P, NUE for K, Water productivity, Labor productivity, Soil organic carbon, yield-scaled GHGs, Product quality. (Kreye et al., 2023).
 
-Below are required parameters for different KPI calculations (Saito et al., 2022).
+Below are required parameters for different KPI calculations (Saito et al., 2021).
 
 
 ```{r table-kpipar, echo=FALSE, warning=FALSE, message=FALSE,comment = NA }
@@ -92,492 +84,69 @@ knitr::kable(kpipar, caption = "Table of Required KPI Variables")
 
 ```
 
-### Calculate KPIs
-Different use cases measure different KPIs.
+## Data Cleaning
 
-According to the KPIs of interest one can easily calculate KPI values as described by (Saito et al., 2022).
+Real data from the use cases will come in slightly different formats due to adjustments from the standard fieldbooks or ODK forms. Data cleaning entails the process of identifying and correcting errors, inconsistencies, or duplicates in a data set. In this guide we will not focus on the data cleaning steps, as these can differ from case to case depending on the purpose and the interest. However, it is important to notice that different cleaning purposes might result in different final results. Below is an example of data cleaning as performed in the [Data Collection Monitoring Tool](https://dc.eia.scio.services/). Use cases that are collecting their data via the tool and downloading their data from there for analysis are already running some cleaning on their data. Below are examples steps.
 
-The R function below can help to easily achieve this with the right parameters (ref for R function?).
+An initial data cleaning step would be to subset the data to relevant variables. For this and the following examples we will make use of the [tidyverse](https://www.tidyverse.org/) framework.
 
-(***names of the various variables in the function need to be updated with standard names as discussed in previous meeting...)
+```{r data-cleaning1}
+  # Load the necessary R packages
+  suppressPackageStartupMessages(library(tidyverse))
 
-```{r kpi-fun }
-KPI <- function(df) {
-  # The objective of this KPI function version 1.0 (28/8/23) is to compute different Agronomic gain
-  # key performance indicators (KPIs) in on-farm trials.
-  # The function compute each KPI based on the available data in the data frame.
-  # The input data frame should be organized similar to the dummy data frame, columns
-  # 'UseCase' and 'HHID' , "treat" MUST be included and the rest are input variables that are in standardized format.
+  # Read the data
+  file <- "./samples/sampledata/sample_yield_data.csv"
+  raw.data <- read.csv(file)
   
-  suppressWarnings(suppressPackageStartupMessages(library(tidyverse)))
+  # Variables to be used
+  vars <- c("HHID", "EAID", "Region", "TRT1_Yplot",	"plotL1_BRR",	"plotW1_BRR",	"TRT2_Yplot", "plotL1_SSR", "plotW1_SSR", "riceSystem", "moistureBRR", "moistureSSR")
   
-  name.df <- deparse(substitute(df))
+  sub.data <- raw.data %>% 
+    select(vars)
   
-  end <- function() { 
-    invokeRestart("abort") 
-    }   
+  # Remove duplicated enumerator entries, keeping the last entry by date of duplicated records
+  clean.data <- sub.data %>%
+    distinct(EAID, .keep_all = TRUE)
   
-  if (!exists(paste0("",name.df,""))) {
-    print("Please supply a valid dataset")
-    end()
-  }
-  if (any(!class(df) %in% c("tbl_df","tbl","data.frame"))) {
-    print("Please supply a valid dataset")
-    end()
-  }
-  if (ncol(df)==0|nrow(df)==0) {
-    print("Please supply a valid dataset")
-    end()
-  }
-  if (!"UseCase" %in% names (df)) {
-    print("Please add a column of the Use Cases with the name UseCase")
-    end()
-  }
-  if (!"HHID" %in% names (df)) {
-    print("Please add a column of the Household identification number with the name HHID")
-    end()
-  }
-  if (!"tret" %in% names (df)) {
-    print("Please add a column of the treatment  with the name treat")
-    end()
-  }
-  
-  #1 - Primary product harvested yield
-  PPHY <- function(X, Y) {
-    if(!is.null(X) & !is.null(Y)) {
-      if(!is.na(X) & !is.na(Y)){
-        if(is.numeric(X) & is.numeric(Y)) {
-          if(Y!=0){
-            X/(Y)
-          } else {
-            NA
-          }
-        }
-        else {
-          NA
-        }
-      }
-      else {
-        NA
-      }
-    } else {
-      NA
-    }
-  }
-  
-  #2 - Secondary product harvested yield
-  SPHY<- function(X, Y) {
-    if(!is.null(X) & !is.null(Y)) {
-      if(!is.na(X) & !is.na(Y)){
-        if(is.numeric(X) & is.numeric(Y)) {
-          if(Y!=0){
-            X/(Y)
-          } else {
-            NA
-          }
-        }
-        else {
-          NA
-        }
-      }
-      else {
-        NA
-      }
-    } else {
-      NA
-    }
-  }
-  
-  #3 - Sustainable yield index
-  SYI <- function(X, Y, Z) {
-    if(!is.null(X) & !is.null(Y) & !is.null(Z)) {
-      if(!is.na(X) & !is.na(Y) & !is.na(Z)){
-        if(is.numeric(X) & is.numeric(Y) & is.numeric(Z)) {
-          if(Z!=0){
-            (X - Y)/(Z)
-          } else {
-            NA
-          }
-        }
-        else {
-          NA
-        }
-      }
-      else {
-        NA
-      }
-    } else {
-      NA
-    }
-  }
-  
-  #4 - Cost-benefit balance
-  CBB <- function(X, Y) {
-    if(!is.null(X) & !is.null(Y)) {
-      if(!is.na(X) & !is.na(Y)){
-        if(is.numeric(X) & is.numeric(Y)) {
-            X - Y
-          } else {
-            NA
-          }
-        }
-        else {
-          NA
-        }
-      }
-      else {
-        NA
-      }
-  }
-  
-  #5 - Gross revenue
-  GR <- function(W, X, Y, Z) {
-    if(!is.null(W) & !is.null(X) & !is.null(Y) & !is.null(Z)) {
-      if(!is.na(W) & !is.na(X) & !is.na(Y) & !is.na(Z)){
-        if(is.numeric(W) & is.numeric(X) & is.numeric(Y) & is.numeric(Z)) {
-          (W*X) + (Y*Z)
-        } else {
-          NA
-        }
-      }
-      else {
-        NA
-      }
-    }
-    else {
-      NA
-    }
-  }  
-  
-  #6 - Agronomic gain in cost-benefit balance
-  AGCB <- function(X, Y, Z) {
-    if(!is.null(X) & !is.null(Y) & !is.null(Z)) {
-      if(!is.na(X) & !is.na(Y) & !is.na(Z)){
-        if(is.numeric(X) & is.numeric(Y) & is.numeric(Z)) {
-          (X*Y) - Z
-        } else {
-          NA
-        }
-      }
-      else {
-        NA
-      }
-    }
-    else {
-      NA
-    }
-  }  
- 
-  #7 - Partial factor productivity of applied Nitrogen 
-  PFPN <- function(X, Y, Z) {
-    if(!is.null(X) & !is.null(Y) & !is.null(Z)) {
-      if(!is.na(X) & !is.na(Y) & !is.na(Z)){
-        if(is.numeric(X) & is.numeric(Y) & is.numeric(Z)) {
-          if((Y+Z)!=0){
-            X/(Y + Z)
-          } else {
-            NA
-          }
-        }
-        else {
-          NA
-        }
-      }
-      else {
-        NA
-      }
-    } else {
-      NA
-    }
-  }
-  
-  #8 - Nutrient-use efficiency
-      #Nitrogen-use efficiency
-  NUE <- function(W,X, Y, Z) {
-    if(!is.null(X) & !is.null(Y) & !is.null(Z)) {
-      if(!is.na(X) & !is.na(Y) & !is.na(Z)){
-        if(is.numeric(X) & is.numeric(Y) & is.numeric(Z)) {
-          if((Y+Z)!=0){
-            (W*X)/(Y + Z)
-          } else {
-            NA
-          }
-        }
-        else {
-          NA
-        }
-      }
-      else {
-        NA
-      }
-    } else {
-      NA
-    }
-  }
-  
-    # Phosphorous-use efficiency
-  PUE <- function(W,X, Y, Z) {
-    if(!is.null(X) & !is.null(Y) & !is.null(Z)) {
-      if(!is.na(X) & !is.na(Y) & !is.na(Z)){
-        if(is.numeric(X) & is.numeric(Y) & is.numeric(Z)) {
-          if((Y+Z)!=0){
-            (W*X)/(Y + Z)
-          } else {
-            NA
-          }
-        }
-        else {
-          NA
-        }
-      }
-      else {
-        NA
-      }
-    } else {
-      NA
-    }
-  }
-  
-     # Potassium-use efficiency
-  KUE <- function(W,X, Y, Z) {
-    if(!is.null(X) & !is.null(Y) & !is.null(Z)) {
-      if(!is.na(X) & !is.na(Y) & !is.na(Z)){
-        if(is.numeric(X) & is.numeric(Y) & is.numeric(Z)) {
-          if((Y+Z)!=0){
-            (W*X)/(Y + Z)
-          } else {
-            NA
-          }
-        }
-        else {
-          NA
-        }
-      }
-      else {
-        NA
-      }
-    } else {
-      NA
-    }
-  }
-  
-  # Sulphur-use efficiency
-  SUE <- function(W,X, Y, Z) {
-    if(!is.null(X) & !is.null(Y) & !is.null(Z)) {
-      if(!is.na(X) & !is.na(Y) & !is.na(Z)){
-        if(is.numeric(X) & is.numeric(Y) & is.numeric(Z)) {
-          if((Y+Z)!=0){
-            (W*X)/(Y + Z)
-          } else {
-            NA
-          }
-        }
-        else {
-          NA
-        }
-      }
-      else {
-        NA
-      }
-    } else {
-      NA
-    }
-  }
-  
-  #9 - Nitrogen balance
-  NB <- function(X, Y, Z) {
-    if(!is.null(X) & !is.null(Y) & !is.null(Z)) {
-      if(!is.na(X) & !is.na(Y) & !is.na(Z)){
-        if(is.numeric(X) & is.numeric(Y) & is.numeric(Z)) {
-          (X + Y) - Z
-        } else {
-          NA
-        }
-      }
-      else {
-        NA
-      }
-    }
-    else {
-      NA
-    }
-  }
-  
-  #10 - Water productivity
-  WUE <- function(W,X, Y, Z) {
-    if(!is.null(X) & !is.null(Y) & !is.null(Z)) {
-      if(!is.na(X) & !is.na(Y) & !is.na(Z)){
-        if(is.numeric(X) & is.numeric(Y) & is.numeric(Z)) {
-          if((Y+Z)!=0){
-            (W*X)/(Y + Z)
-          } else {
-            NA
-          }
-        }
-        else {
-          NA
-        }
-      }
-      else {
-        NA
-      }
-    } else {
-      NA
-    }
-  }
-  
-  #11 - Labour productivity
-  LP <- function(X, Y, Z) {
-    if(!is.null(X) & !is.null(Y) & !is.null(Z)) {
-      if(!is.na(X) & !is.na(Y) & !is.null(Z)){
-        if(is.numeric(X) & is.numeric(Y) & is.numeric(Z)) {
-          if(Y!=0){
-           (X*Y)/(Z)
-          } else {
-            NA
-          }
-        }
-        else {
-          NA
-        }
-      }
-      else {
-        NA
-      }
-    } else {
-      NA
-    }
-  }
-  
-  #12 - Input
-  Input <- function(U, V, W, X, Y, Z) {
-    if(!is.null(U) & !is.null(V) & !is.null(W) & !is.null(X) & !is.null(Y) & !is.null(Z)) {
-      if(!is.na(U) & !is.na(V) & !is.na(W) & !is.na(X) & !is.na(Y) & !is.na(Z)){
-        if(is.numeric(U) & is.numeric(V) & is.numeric(W) & is.numeric(X) & is.numeric(Y) & is.numeric(Z)) {
-          ((U*V) + (W*X) + (Y*Z))/100
-        } else {
-          NA
-        }
-      }
-      else {
-        NA
-      }
-    }
-    else {
-      NA
-    }
-  }
-  
-  #13 - Root dry mass
-  RDM <- function(X, Y, Z) {
-    if(!is.null(X) & !is.null(Y) & !is.null(Z)) {
-      if(!is.na(X) & !is.na(Y) & !is.na(Z)){
-        if(is.numeric(X) & is.numeric(Y) & is.numeric(Z)) {
-          if((Y/Z)!=0){
-            X/(Y/Z)
-          } else {
-            NA
-          }
-        }
-        else {
-          NA
-        }
-      }
-      else {
-        NA
-      }
-    } else {
-      NA
-    }
-  }
-  
-  #14 - Total aboveground dry biomass of crop
-  TADMC <- function(X, Y) {
-    if(!is.null(X) & !is.null(Y)) {
-      if(!is.na(X) & !is.na(Y)){
-        if(is.numeric(X) & is.numeric(Y)) {
-          if(Y!=0){
-            X/Y
-          } else {
-            NA
-          }
-        }
-        else {
-          NA
-        }
-      }
-      else {
-        NA
-      }
-    } else {
-      NA
-    }
-  }
-  
-  df <- df %>% 
-    unite("UseCase_HHID", c(UseCase,HHID,treat)) %>%  
-    as_tibble()
-  
-  result <- NULL
-  
-  for (i in 1:length(unique(df$UseCase_HHID))) {
-    temp <- df %>% 
-      filter(UseCase_HHID==unique(df$UseCase_HHID)[i]) %>% 
-      droplevels()
-
-    temp <- temp[1,] 
-    
-    result[[i]] <- temp %>% 
-      mutate(  
-        PPHY=PPHY(temp$pmass, temp$psize),  
-        
-        SPHY=SPHY(temp$smass, temp$psize),  
-        
-        SYI=SYI(temp$Syield, temp$Sdyield, temp$Smyield),  
-        
-        CBB=CBB(temp$grev, temp$cost),  
-        
-        GR=GR(temp$Pyield, temp$Psale, temp$Syield, temp$Ssale),   
-        
-        AGCB=AGCB(temp$Hprodprice, temp$Yield, temp$Pcost),   
-        
-        PFPN=PFPN(temp$Pyield, temp$Ninfert, temp$Norg),  
-        
-        PFPN=NUE(temp$pmass, temp$psize, temp$niti, temp$nito),   
-        
-        PFPP=PUE(temp$pmass, temp$psize, temp$phoi, temp$phoo),   
-        
-        PFPK=KUE(temp$pmass, temp$psize, temp$poti, temp$poto),   
-        
-        PFPS=SUE(temp$pmass, temp$psize, temp$soti, temp$soto),   
-        
-        NB=NB(temp$Nyield, temp$Ninfert, temp$Norg),   
-        
-        WUE=WUE(temp$Pmass, temp$Psize, temp$wirr, temp$wrain),  
-        
-        LP=LP(temp$Pmass, temp$Psize, temp$tlabor),  
-        
-        Input=Input(temp$Mcomp, temp$Ccon, temp$Rcresid, temp$Cresid, temp$Rdmass, temp$Cconh),   
-        
-        RDM=RDM(temp$Tdmass, temp$Shoot, temp$Root),  
-        
-        TADMC=TADMC(temp$Yield, temp$Cspec)  
-        ) %>%   
-      select(UseCase_HHID, PPHY:TADMC) %>% 
-      separate(UseCase_HHID, sep = "_", into = c("UseCase","HHID","treat"))
-  }
-  return(bind_rows(result))
-  
-  detach("package:tidyverse")
-  
-
-}
+  # Here maybe we need to add an example of cleaning... Not sure what would be a good example.
 ```
+
+Use the above snippet as an example qand substitute as per your own specific needs. For example, substitute the `"..."` with the list of your own variables that are not needed from your data set. In any case, the use case team must perform data cleaning to calculate the required standard parameters.
+
+## Data Transformations
+
+The parameters required for the KPI metrics might be included in the raw data or not. Therefore, it is needed to make sure the use case has collected the necessary data in advance. If the necessary information is collected, there might be intermediate necessary steps to calculate the final KPI metrics. For example, a use case might have already collected the yield of the __primary__ product in kg/ha, but it could be that the use case collects in one hand the fresh weight (kg), the plot length and width (m), and also the moisture content (%), in which case it would be probably interesting to calculate the dry-weight __primary product harvested yield__ in dry-weight as:
+
+`Please review this formula`
+$Yield = \frac{Fresh Weight * (Moisture/100)}{(Plot Length * Plot Width)/10000}$
+
+In another use case, they might want to calculate the __primary product harvested yield__ as fresh-weight, in which case:
+
+`Please review this formula`
+$Yield = \frac{Fresh Weight}{(Plot Length * Plot Width)/10000}$
+
+In essence, different KPIs require different variables (explained in table 1) which require specific unit conversions and data transformations. On your data, this will require some additional steps of organizing (and transforming) it to get it into the final KPI calculations.
+
+```{r data-transform1}
+  # Calculate Primary Productivity Harvested Yield (PPHY)
+  yield.vars <- c("HHID", "EAID", "Region", "TRT1_Yplot",	"plotL1_BRR",	"plotW1_BRR",	"riceSystem", "moistureBRR")
+  pphy.data <- clean.data %>%
+    select(yield.vars)
+  
+  # Generate Primary Productivity Harvested Yield (PPHY)
+  pphy <- (pphy.data$TRT1_Yplot * (pphy.data$moistureBRR/100)) / ((pphy.data$plotL1_BRR * pphy.data$plotW1_BRR)/10000)
+
+  # Create table with transformation
+  kpi.data <- cbind(pphy.data, pphy) %>%
+    select("HHID", "Region", "riceSystem", "pphy")
+```
+
+The example above can be implemented for all other KPI metrics as needed by the use case. Following sections will focus on demonstrating visualization examples as produced in the [Excellence in Agronomy Impact Dashboard](https://eia-transform.shinyapps.io/impact/).
+
+
 
 
 ## Visualization
-
-Visualizations as in the [<span style="color: red;font-weight: bold;">impact dashboard</span>](https://eia-transform.shinyapps.io/impact/).  
 
 Description of terms used:
 
@@ -591,8 +160,6 @@ Change: change in yield, profit or other KPI being measured. (Treatment 1 - Trea
 
 
 Description of how these treatments are implemented is detailed in Kreye et. al. 2023 
-
-For the visualizations, we have a general and detailed view.
 
 General view indicates the simple descriptive analysis of the data to show distribution (via bar chart) and difference in the different treatments (via pie chart).
 
@@ -669,7 +236,7 @@ ggplot(
 
 ```
 
-```{r phpy-bar,echo=FALSE, warning=FALSE, message=FALSE,comment = NA, tidy = TRUE, fig.cap="BAR Plot"}
+```{r phpy-bar,echo=FALSE, warning=FALSE, message=FALSE,comment = NA, tidy = TRUE, fig.cap="Yield distribution"}
 
 # Define the path to the file location
 file <- "./samples/sampledata/sample_yield_data.csv"
@@ -742,7 +309,7 @@ plot_ly(data = ds,
 
 ```
 
-```{r phpy-pie,echo=FALSE, warning=FALSE,message=FALSE, comment = NA, tidy = TRUE, fig.cap="PIE Plot"}
+```{r phpy-pie,echo=FALSE, warning=FALSE,message=FALSE, comment = NA, tidy = TRUE, fig.cap="Effects on grain yield of TRT1 vs TRT2"}
 
 #Pie plot to show  difference (positive vs negative)
 #incrSSR  is the change variable (TRT1 - TRT2)
@@ -840,7 +407,7 @@ ggplot(
 
 ```
 
-```{r phpy-detail,echo=FALSE, warning=FALSE, message=FALSE,comment = NA,fig.cap="BAR Plot"}
+```{r phpy-detail,echo=FALSE, warning=FALSE, message=FALSE,comment = NA,fig.cap="Yield distribution"}
 
 # Detail-scatter plot
 
@@ -925,13 +492,13 @@ p1+geom_point(size=1)+
   xlab("Yield difference (TRT1 - TRT2) (t/ha)") +
   labs(title="Comparison of yields for site-specific (TRT1) and control (TRT2)")+
   ylab("Cumulative probability") +
-  facet_wrap(~stateEA)+
+  facet_wrap(~Region)+
   them2
 
 ```
 
 
-```{r echo=FALSE, warning=FALSE, message=FALSE,comment = NA,fig.cap="BAR Plot"}
+```{r echo=FALSE, warning=FALSE, message=FALSE,comment = NA,fig.cap="Comparison of yields for site-specific (TRT1) and control (TRT2"}
 
 
 # Detail-cumulative distribution
@@ -1004,7 +571,7 @@ ggplot(
 ```
 
 
-```{r nue-bar,echo=FALSE,warning=FALSE,message=FALSE,comment = NA, fig.cap="BAR Plot"}
+```{r nue-bar,echo=FALSE,warning=FALSE,message=FALSE,comment = NA, fig.cap="Nitrogen Use Efficiency"}
 #Bar plot to show distribution for arious treatments across regions
 
 #this example shows distribution of nitrogen-use efficiency.
@@ -1055,7 +622,7 @@ ggplot(dataHNm.nn1, aes(plot, useN, fill = plot))+
 ```
 
 
-```{r nue-box,echo=FALSE,warning=FALSE,message=FALSE,comment = NA, fig.cap="BAR Plot"}
+```{r nue-box,echo=FALSE,warning=FALSE,message=FALSE,comment = NA, fig.cap="Nitrogen Use Efficiency"}
 #Box plot- nitrogen use efficiency
 ggplot(dataHNm.nn1, aes(plot, useN, fill = plot))+
   geom_boxplot()+
@@ -1103,8 +670,6 @@ knitr::kable(addonpar, caption = "Table of Required Add-On Variables")
 
 Coming soon...
 
-
-
 \newpage
 
 # References
@@ -1127,6 +692,7 @@ Suggested Citation:
 
 
 © International Institute of Tropical Agriculture (IITA) 2024
+
 
 \vfill
 ```{r pic ,out.width="100%", echo=FALSE}
