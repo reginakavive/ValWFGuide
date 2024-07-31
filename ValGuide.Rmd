@@ -90,7 +90,7 @@ kable(kpipar, align = "c") %>%
 \newpage
 ## Data Cleaning
 
-Real data from the use cases will come in slightly different formats due to adjustments from the standard fieldbooks or ODK forms. Data cleaning entails the process of identifying and correcting errors, inconsistencies, or duplicates in a data set. In this guide we will not focus on the data cleaning steps, as these can differ from case to case depending on the purpose and the interest. However, it is important to notice that different cleaning purposes might result in different final results. Below is an example of data cleaning as performed in the [Data Collection Monitoring Tool](https://dc.eia.scio.services/). Use cases that are collecting their data via the tool and downloading their data from there for analysis are already running some cleaning on their data. Below are examples steps.
+Real data from the use cases will come in slightly different formats due to adjustments from the standard fieldbooks or ODK forms. *Data cleaning* entails the process of identifying and correcting errors, inconsistencies, or duplicates in a data set. In this guide we will not focus on the data cleaning steps, as these can differ from case to case depending on the purpose and the interest. However, it is important to notice that different cleaning purposes might result in different final results. Below is an example of data cleaning as performed in the [Data Collection Monitoring Tool](https://dc.eia.scio.services/). Use cases that are collecting their data via the tool and downloading their data from there for analysis are already running some cleaning on their data. Below are examples steps.
 
 An initial data cleaning step would be to subset the data to relevant variables. For this and the following examples we will make use of the [tidyverse](https://www.tidyverse.org/) framework.\newline
 
@@ -103,10 +103,10 @@ An initial data cleaning step would be to subset the data to relevant variables.
   raw.data <- read.csv(file)
   
   # Variables to be used
-    vars <- c("household", "enumerator", "region",
-              "T2_yield", "plot_length_T2",	"plot_width_T2",
-              "T1_yield", "plot_length_T1", "plot_width_T1",
-              "riceSystem", "moisture_T2", "moisture_T1")
+  vars <- c("household", "enumerator", "region",
+            "plot_yield_T2", "plot_length_T2",	"plot_width_T2",
+            "plot_yield_T1", "plot_length_T1", "plot_width_T1",
+            "riceSystem", "moisture_T2", "moisture_T1")
   
   sub.data <- raw.data %>% 
     select(vars)
@@ -118,6 +118,24 @@ An initial data cleaning step would be to subset the data to relevant variables.
   # Filter out moisture higher than 20%
   valid.data <- clean.data %>%
     filter(across(c(moisture_T2, moisture_T1), ~. <= 20))
+```
+
+Additionally, the data can also be converted into a [tidy data](https://vita.had.co.nz/papers/tidy-data.pdf) structure, for more explicit and standard format. For example:
+
+```{r data-cleaning2, warning=FALSE, message=FALSE,comment = NA, tidy = TRUE, tidy.opts = list(width.cutoff = 75)}
+  # Transform data from wide to long format
+  tidy.data <- valid.data %>%
+    pivot_longer(
+      cols = c(plot_yield_T2, plot_length_T2, plot_width_T2, moisture_T2,
+               plot_yield_T1, plot_length_T1, plot_width_T1, moisture_T1),
+      names_to = c("variable", "treatment"),
+      names_pattern = "(.*)_(T[12])",
+      values_to = "value"
+    )%>%
+  pivot_wider(
+    names_from = variable,
+    values_from = value
+  )
 ```
 
 For other examples of data cleaning, please see an example [script on this Github link](https://github.com/EiA2030/sandman/blob/04be1718d744cf05b785c24f90308bbc051cfc91/data_processing_file_NN.R).
@@ -145,12 +163,12 @@ In essence, different KPIs require different variables (explained in table 1) wh
 
 ```{r data-transform1, tidy=TRUE, tidy.opts = list(width.cutoff = 75)}
   # Calculate Primary Productivity Harvested Yield (PPHY)
-  yield.vars <- c("household", "enumerator", "region", "T2_yield",	"plot_length_T2",	"plot_width_T2",	"riceSystem", "moisture_T2")
+  yield.vars <- c("household", "enumerator", "region", "plot_yield_T2",	"plot_length_T2",	"plot_width_T2",	"riceSystem", "moisture_T2")
   pphy.data <- clean.data %>%
     select(yield.vars)
   
   # Generate Primary Productivity Harvested Yield (PPHY)
-  pphy <- (pphy.data$T2_yield * (pphy.data$moisture_T2/100)) / ((pphy.data$plot_length_T2 * pphy.data$plot_width_T2)/10000)
+  pphy <- (pphy.data$plot_yield_T2 * (pphy.data$moisture_T2/100)) / ((pphy.data$plot_length_T2 * pphy.data$plot_width_T2)/10000)
 
   # Create table with transformation
   kpi.data <- cbind(pphy.data, pphy) %>%
@@ -234,16 +252,16 @@ A preliminary visualization to compare the results from the MVP is to check the 
 
 `  #Variables of interest`
 `  subset_df <- dataHm.pp1[, c("household", "region","riceSystem",
-                               "T2_Yha","T1_Yha","T3_Yha", "eSSR","incrSSR" )]`
+                               "T2_yieldha","T1_yieldha","T3_yieldha", "eSSR","incrSSR" )]`
   subset_df<-distinct(subset_df)
 
 `  # Group by region and calculate the averages`
 `  averages_by_state <- subset_df %>%
     group_by(region) %>%
     summarise(
-      T2 = mean(T2_Yha, na.rm = TRUE),
-      T1 = mean(T1_Yha, na.rm = TRUE),
-      T3 = mean(T3_Yha, na.rm = TRUE)
+      T2 = mean(T2_yieldha, na.rm = TRUE),
+      T1 = mean(T1_yieldha, na.rm = TRUE),
+      T3 = mean(T3_yieldha, na.rm = TRUE)
     )
   averages_by_state <- averages_by_state %>%
     pivot_longer(!region, names_to = "Treatment", values_to = "Average")`
@@ -263,7 +281,7 @@ A preliminary visualization to compare the results from the MVP is to check the 
                                  "T3" = "#c26e60")) +  
     #theme as defined at start
     them2
-    `
+`
 
 ```
 
@@ -276,7 +294,8 @@ file <- "./samples/sampledata/sample_Yieldiff.csv"
 dataHm.pp1 <- read.csv(file)
 
 #Variables of interest
-subset_df <- dataHm.pp1[, c("household", "region","riceSystem","T2_Yha","T1_Yha","T3_Yha", 
+subset_df <- dataHm.pp1[, c("household", "region","riceSystem",
+                            "T2_yieldha","T1_yieldha","T3_yieldha",
                             "eSSR","incrSSR" )]
 subset_df<-distinct(subset_df)
 
@@ -284,9 +303,9 @@ subset_df<-distinct(subset_df)
 averages_by_state <- subset_df %>%
   group_by(region) %>%
   summarise(
-    T2 = mean(T2_Yha, na.rm = TRUE),
-    T1 = mean(T1_Yha, na.rm = TRUE),
-    T3 = mean(T3_Yha, na.rm = TRUE)
+    T2 = mean(T2_yieldha, na.rm = TRUE),
+    T1 = mean(T1_yieldha, na.rm = TRUE),
+    T3 = mean(T3_yieldha, na.rm = TRUE)
   )
 averages_by_state <- averages_by_state %>%
   pivot_longer(!region, names_to = "Treatment", values_to = "Average")
@@ -341,35 +360,39 @@ Additional comparison of the treatments (control vs. MVP, etc)  showing the perc
 
 ```
 
-```{r phpy-pie, echo = FALSE, fig.show = 'hold', fig.cap="Effects on grain yield of T1 vs T2"}
+```{r phpy-pie, echo = FALSE, out.width = "80%", fig.align = "center"}
 
-#Pie plot to show  difference (positive vs negative)
-#incrSSR  is the change variable (T1 - T2)
-
-#calculate negative and positive change percentage values
-x <- (subset_df[! is.na(subset_df$incrSSR),] )$incrSSR
-xi <- x[x<0]
-xj <- x[x>0]
-pos <- (length(xj)/length(x))*100
-neg <- (length(xi)/length(x))*100
-ds <- data.frame(labels = c("Yield Difference <br> (T1 yield - T2 yield)", 
-                            "Positive change", "Negative change"),
-                 values = c(NA, pos, neg))
-
-#plot the data
-plot_ly(data = ds,
-        labels = ~labels,
-        values = ~values,
-        parents = c("", "Yield Difference <br> (T1 yield - T2 yield)", 
-                    "Yield Difference <br> (T1 yield - T2 yield)"),  
-        type = "sunburst",
-        branchvalues = 'total',
-        textinfo = "label+percent entry",
-        hoverinfo = "text",
-        hovertext = paste("% of farmers experiencing<br>", 
-                          tolower(ds$labels), "from T1")) %>%
-  layout(title = 'Effects on grain yield of T1 vs T2')
-
+# library(plotly)
+# 
+# #Pie plot to show  difference (positive vs negative)
+# #incrSSR  is the change variable (T1 - T2)
+# 
+# #calculate negative and positive change percentage values
+# x <- (subset_df[! is.na(subset_df$incrSSR),] )$incrSSR
+# xi <- x[x<0]
+# xj <- x[x>0]
+# pos <- (length(xj)/length(x))*100
+# neg <- (length(xi)/length(x))*100
+# ds <- data.frame(labels = c("Yield Difference <br> (T1 yield - T2 yield)",
+#                             "Positive change", "Negative change"),
+#                  values = c(NA, pos, neg))
+# 
+# #plot the data
+# p <- suppressWarnings(plot_ly(data = ds,
+#              labels = ~labels,
+#              values = ~values,
+#              parents = c("", "Yield Difference <br> (T1 yield - T2 yield)",
+#                          "Yield Difference <br> (T1 yield - T2 yield)"),
+#              type = "sunburst",
+#              branchvalues = 'total',
+#              textinfo = "label+percent entry",
+#              hoverinfo = "text",
+#              hovertext = paste("% of farmers experiencing<br>",
+#                                tolower(ds$labels), "from T1"))) %>%
+#   layout(title = 'Effects on grain yield of T1 vs T2')
+# p
+# suppressWarnings(save_image(p, 'sunburst.png'))
+knitr::include_graphics("sunburst.png", )
 ```
 
 \newpage
@@ -383,47 +406,42 @@ This section provides the example code blocks in order to produce more detailed 
 
 ```{r t3, echo = TRUE, results = FALSE, out.width = "0%"}
 
-`  # Define the path to the file location`
-`  file <- "./samples/sampledata/sample_yield_data.csv"`
+  # Detail-scatter plot
 
-`  # Read the data`
-`  dataHm.pp1 <- read.csv(file)`
+  # Define the path to the file location
+  file <- "./samples/sampledata/sample_yield_data.csv"
 
-`  # Transform data accordingly`
-`  dataHm.pp1 <- dataHm.pp1 %>%
+  # Read the data
+  dataHm.pp1 <- read.csv(file)
+
+  # Transform data accordingly
+  dataHm.pp1 <- dataHm.pp1 %>%
     mutate(
       riceSystem = case_when(
         riceSystem == "rainfedLowland" ~ "Rainfed lowland",
         riceSystem == "irrigated" ~ "Irrigated",
         TRUE ~ riceSystem
       )
-    )`
+    )
+  dataHm.pp1$region <- toTitleCase(dataHm.pp1$region)
+  dataHm.pp1 <- dataHm.pp1[!is.na(dataHm.pp1$T2_yieldha),]
 
-`  dataHm.pp1$region <- toTitleCase(dataHm.pp1$region)`
-`  dataHm.pp1 <- dataHm.pp1[!is.na(dataHm.pp1$T2_yield),]`
-
-`  # Plot the data`
+  # Plot the data
 `  ggplot(
     dataHm.pp1, 
     aes(
-      T2_Yha, T1_Yha
+      T2_yieldha, T1_yieldha
       )
-    ) +  
+    ) +
     geom_point(size = 1) +
-    geom_abline(slope = 1, intercept = 0, size = 0.5, colour = "grey") +  
-    scale_x_continuous(
-      minor_breaks = seq(min(dataHm.pp1$T2_Yha, na.rm = TRUE), max(dataHm.pp1$T2_Yha, na.rm = TRUE), by = 0.5)  
-    ) +  
-    scale_y_continuous(  
-      minor_breaks = seq(min(dataHm.pp1$T1_Yha, na.rm = TRUE), max(dataHm.pp1$T1_Yha, na.rm = TRUE), by = 0.5)  
-    ) +  
-    facet_wrap(~region) +  
+    geom_abline(slope = 1, intercept = 0, size = 0.5, colour = "grey") +
+    facet_wrap(~region) +
     xlab("Grain yield (t/ha) of the control (T2)") +  
-    ylab("Grain yield (t/ha) of the MVP (T1)") +    
+    ylab("Grain yield (t/ha) of the MVP (T1)") + 
     labs(title = "Yield distribution") +  
-    # Apply theme as defined above
-    them2`
-
+    #theme as defined above
+    them2
+`
 ```
 
 ```{r phpy-detail, echo=FALSE, warning=FALSE, message=FALSE,comment = NA, fig.show='hold', fig.cap="Yield distribution"}
@@ -444,32 +462,18 @@ dataHm.pp1 <- dataHm.pp1 %>%
     )
   )
 dataHm.pp1$region <- toTitleCase(dataHm.pp1$region)
-dataHm.pp1 <- dataHm.pp1[!is.na(dataHm.pp1$T2_yield),]
+dataHm.pp1 <- dataHm.pp1[!is.na(dataHm.pp1$T2_yieldha),]
 
 #plot the data
 ggplot(
   dataHm.pp1, 
   aes(
-    T2_Yha, T1_Yha
+    T2_yieldha, T1_yieldha
     )
-  ) +  
+  ) +
   geom_point(size = 1) +
-  geom_abline(slope = 1, intercept = 0, size = 0.5, colour = "grey") +  
-  scale_x_continuous(
-    minor_breaks = seq(  
-      min(dataHm.pp1$T2_Yha, na.rm = TRUE),  
-      max(dataHm.pp1$T2_Yha, na.rm = TRUE),  
-      by = 0.5  
-    )  
-  ) +  
-  scale_y_continuous(  
-    minor_breaks = seq(  
-      min(dataHm.pp1$T1_Yha, na.rm = TRUE),  
-      max(dataHm.pp1$T1_Yha, na.rm = TRUE),  
-      by = 0.5  
-    )  
-  ) +  
-  facet_wrap(~region) +  
+  geom_abline(slope = 1, intercept = 0, size = 0.5, colour = "grey") +
+  facet_wrap(~region) +
   xlab("Grain yield (t/ha) of the control (T2)") +  
   ylab("Grain yield (t/ha) of the MVP (T1)") + 
   labs(title = "Yield distribution") +  
@@ -558,7 +562,7 @@ The following code illustrates how to visualize Nutrient-Use Efficiency, Water-U
 `  dataHNm.nn1 <- read.csv(file)`
 
 `  # Variables of interest`
-`  nue_df <- dataHNm.nn1[, c( "Region", "plot"   , "useN" )]`
+`  nue_df <- dataHNm.nn1[, c( "Region", "plot" , "useN" )]`
 
 `  # Transform data and calculate average by group`
 `  nue_df <- distinct(nue_df)`
@@ -638,7 +642,7 @@ ggplot(dataHNm.nn1, aes(plot, useN, fill = plot))+
 
 \newpage
 
- \textbf{General Explanation:}
+ <!-- \textbf{General Explanation:} -->
 
 
 
