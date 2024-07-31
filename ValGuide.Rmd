@@ -142,6 +142,7 @@ For other examples of data cleaning, please see an example [script on this Githu
 
 Use the above snippet as an example and substitute as per your own specific needs. For example, substitute the "..." with the list of your own variables that are not needed from your data set. In any case, the use case team must perform data cleaning to calculate the required standard parameters.
 
+\newpage
 \textbf{Data cleaning – what to look at:}
 
 The obvious: are there any outliers? In general, applies to all input data. Review your data collection form and check all parameters that are relevant. Yield will be a first choice, but there are also other parameters that help understanding whether the output KPI data are good enough for the validation analysis. Among these are (list is not complete…): number of plants per plot, plot dimensions, spacing, confirmations of inputs, plot management (like weeding) as well as the evaluation of the side-by-side comparison by the EA for stresses (group name) can help the assessment whether or not to include the data of a specific farm. However, do make an effort to scrutinize carefully whether data can be rightfully excluded. Keep a log with rules for exclusion. 
@@ -333,7 +334,6 @@ Additional comparison of the treatments (control vs. MVP, etc)  showing the perc
 ```{r t2, echo = TRUE, results = FALSE, out.width = "0%"}
 `  # Pie plot to show  difference (positive vs negative)`
 `  # incrSSR  is the change variable (T1 - T2)`
-
 `  # Calculate negative and positive change percentage values`
 `  x <- (subset_df[! is.na(subset_df$incrSSR),] )$incrSSR`
 `  xi <- x[x<0]`
@@ -343,7 +343,6 @@ Additional comparison of the treatments (control vs. MVP, etc)  showing the perc
 `  ds <- data.frame(labels = c("Yield Difference <br> (T1 yield - T2 yield)", 
                               "Positive change", "Negative change"),
                    values = c(NA, pos, neg))`
-
 `  # Plot the data`
 `  plot_ly(data = ds,
            labels = ~labels,
@@ -357,11 +356,9 @@ Additional comparison of the treatments (control vs. MVP, etc)  showing the perc
            hovertext = paste("% of farmers experiencing<br>", 
                              tolower(ds$labels), "from T1")) %>%
     layout(title = 'Effects on grain yield of T1 vs T2')`
-
 ```
 
 ```{r phpy-pie, echo = FALSE, out.width = "80%", fig.align = "center"}
-
 # library(plotly)
 # 
 # #Pie plot to show  difference (positive vs negative)
@@ -392,7 +389,7 @@ Additional comparison of the treatments (control vs. MVP, etc)  showing the perc
 #   layout(title = 'Effects on grain yield of T1 vs T2')
 # p
 # suppressWarnings(save_image(p, 'sunburst.png'))
-knitr::include_graphics("sunburst.png", )
+knitr::include_graphics("./www/Logo/sunburst.png", )
 ```
 
 \newpage
@@ -489,15 +486,12 @@ ggplot(
 Cumulative distributions allow to see which probability of the sample distribute across negative and positive impacts. This allows to better understand how treatments compare and across the probability distributions.
 
 ```{r t4, echo = TRUE, results = FALSE, out.width = "0%"}
-
 `  # eSSR is the difference in yield between the treatments (T1-T2)`
 `  # riceSystem used to compare different attributes can also be landscapes.`
-
 `  # Define the path to the file location`
 `  file <- "./samples/sampledata/sample_Yieldiff.csv"`
 `  # Read the data`
 `  yieldiff <- read.csv(file)`
-
 `  # Plot the data`
 `  p1 <- ggplot(yieldiff, aes(eSSR, ecdf, colour=riceSystem))`
 `  p1 + geom_point(size=1) +
