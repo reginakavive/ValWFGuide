@@ -17,9 +17,10 @@ output:
   tidy: yes
   latex_engine: pdflatex
   word_document: default
-  urlcolor: blue
+
 header-includes:
-- \usepackage{color}
+- \usepackage{xcolor} 
+- \usepackage{hyperref} 
 - \usepackage{framed}
 - \setlength{\fboxsep}{.8em}
 - \definecolor{nbox}{rgb}{100,100,100}
@@ -53,11 +54,11 @@ knitr::opts_chunk$set(tidy = TRUE, warning=FALSE, comment = NA)
 ```
 
 # Introduction
-We designed this document to assist the Use Case teams in understanding the validation data set and the related standard analytics including, data preparation techniques, and the visualization of validation data. We pay specific attention to the parameters measuring effectively Agronomic gain key performance indicators (KPIs). The KPIs of each Use Case will be integrated into the [CGIAR Excellence in Agronomy (EiA) Initiative Impact Dashboard](https://eia-transform.shinyapps.io/impact/).
+We designed this document to assist the Use Case teams in understanding the validation data set and the related standard analytics including, data preparation techniques, and the visualization of validation data. We pay specific attention to the parameters measuring effectively Agronomic gain key performance indicators (KPIs). The KPIs of each Use Case will be integrated into the CGIAR Excellence in Agronomy (EiA) Initiative \textcolor{blue}{\href{https://eia-transform.shinyapps.io/impact/}{ Impact Dashboard}}.
 
 While TRANSFORM is ready to analyze the validation data for display on the impact dashboard it is vital that Use Case teams engages in data cleaning to, for example, verify the validity of field set-ups and data submissions. Nevertheless, we strongly encourage Use Cases to run the analysis in parallel for their own insights and to ascertain the validity of the results.
 
-The KPI documentation (Saito et al., 2022) is accessible via this [link](https://cgspace.cgiar.org/items/624c2bf3-6887-4036-b46f-19bb6f223705). The KPI guide provides a description of various KPIs and how to calculate them. They cover land productivity and its stability, resource use efficiency and soil health and are used across geographies, farming systems, and research and development (R&D) stages (like validation and piloting stages) (Saito et al., 2022)
+The KPI documentation (Saito et al., 2022) is accessible via this \textcolor{blue}{\href{https://cgspace.cgiar.org/items/624c2bf3-6887-4036-b46f-19bb6f223705}{link}}. The KPI guide provides a description of various KPIs and how to calculate them. They cover land productivity and its stability, resource use efficiency and soil health and are used across geographies, farming systems, and research and development (R&D) stages (like validation and piloting stages) (Saito et al., 2022)
 
 The graphic below shows the various stages of the data flow during validation exercise. The highlighted section (in red) is what will be highlighted in detail in this analytics document.
 
@@ -68,16 +69,14 @@ knitr::include_graphics("./www/Logo/intro.png")
 
 # Validation Analysis
 
-Use Cases perform a validation exercise to test whether their Minimum Viable Product (MVP) meets the requirements (performance metric) that the Use Case postulated for each KPI. For more information on the protocol for validation exercises see Kreye et al., 2023.
-
-The following steps are required before any analysis and visualization can be performed on the validation data.
+Use Cases perform a validation exercise to test whether their Minimum Viable Product (MVP) meets the requirements (performance metric) that the Use Case postulated for each KPI. For more information on the protocol for validation exercises see Kreye et al., 2023. The following steps are required before any analysis and visualization can be performed on the validation data.
 
 \newpage
 ## KPI Parameters
 
 Revisit your protocol and the your KPIs, Which KPIs did you select and what are the performance metrices that you expect your MVP to meet for each of these? The list of main KPIs considered in EiA Use Cases comprises Yield, Yield stability, Profit, Nutrient-use efficiency, NUE for N, NUE for P, NUE for K, Water productivity, Labor productivity, Soil organic carbon, yield-scaled GHGs and Product quality.
 
-Below is a description of the parameters for the calculations of yield, profitability (land productivity) and resource use efficiency and the required parameters for their KPI calculations (Saito et al., 2021).
+Below is a description of the parameters for the calculations of yield, profitability (land productivity) and resource use efficiency and the required parameters for their KPI calculations (Saito et al., 2021). The following table is copied from the \textcolor{blue}{\href{https://cgspace.cgiar.org/items/624c2bf3-6887-4036-b46f-19bb6f223705}{KPI guide}}, which provides comprehensive insights on the KPIs.
 
 ```{r table-kpipar, echo=FALSE, warning=FALSE, message=FALSE,comment = NA, tidy = TRUE, tidy.opts = list(width.cutoff = 100)}
 library(kableExtra)
@@ -99,9 +98,9 @@ kable(kpipar, align = "c") %>%
 \newpage
 ## Data Cleaning
 
-Real data from the use cases will come in slightly different formats due to adjustments from the standard fieldbooks or ODK forms. *Data cleaning* entails the process of identifying and correcting errors, inconsistencies, or duplicates in a data set. In this guide we will not focus on the data cleaning steps, as these can differ from case to case depending on the purpose and the interest. However, it is important to notice that different cleaning purposes might result in different final results. Below is an example of data cleaning as performed in the [Data Collection Monitoring Tool](https://dc.eia.scio.services/). Use cases that are collecting their data via the tool and downloading their data from there for analysis are already running some cleaning on their data. Below are examples steps.
+Real data from the use cases will come in slightly different formats due to adjustments from the standard fieldbooks or ODK forms. *Data cleaning* entails the process of identifying and correcting errors, inconsistencies, or duplicates in a data set. In this guide we will not focus on the data cleaning steps, as these can differ from case to case depending on the purpose and the interest. However, it is important to notice that different cleaning purposes might result in different final results. Below is an example of data cleaning as performed in the \textcolor{blue}{\href{https://dc.eia.scio.services/}{Data Collection Monitoring Tool}}. Use cases that are collecting their data via the tool and downloading their data from there for analysis are already running some cleaning on their data. Below are examples steps.
 
-An initial data cleaning step would be to subset the data to relevant variables. For this and the following examples we will make use of the [tidyverse](https://www.tidyverse.org/) framework.\newline
+An initial data cleaning step would be to subset the data to relevant variables. For this and the following examples we will make use of the \textcolor{blue}{\href{https://www.tidyverse.org/}{tidyverse}} framework.\newline
 
 ```{r data-cleaning1, warning=FALSE, message=FALSE,comment = NA, tidy = TRUE, tidy.opts = list(width.cutoff = 75)}
   # Load the necessary R packages
@@ -131,7 +130,7 @@ An initial data cleaning step would be to subset the data to relevant variables.
 
 Use the above snippet as an example and substitute as per your own specific needs. For example, substitute the variables in the `vars` with the list of your own variables that are needed from your data set. In any case, the Use Case team must perform data cleaning to calculate the required standard parameters.\newline\newline\newline\newline\newline\newline\newline\newline\newline\newline\newline\newline\newline\newline\newline\newline\newline
 
-Additionally, the data can also be converted into a [tidy data](https://vita.had.co.nz/papers/tidy-data.pdf) structure, for more explicit and standard format. For example: \newline
+Additionally, the data can also be converted into a \textcolor{blue}{\href{https://vita.had.co.nz/papers/tidy-data.pdf}{tidy data}} structure, for more explicit and standard format. For example: \newline
 
 ```{r data-cleaning2, warning=FALSE, message=FALSE,comment = NA, tidy = TRUE, tidy.opts = list(width.cutoff = 75)}
 `  # Transform data from wide to long format`
@@ -149,7 +148,7 @@ Additionally, the data can also be converted into a [tidy data](https://vita.had
 `  )`
 ```
 
-For other examples of data cleaning, please see an example [script on this Github link](https://github.com/EiA2030/sandman/blob/04be1718d744cf05b785c24f90308bbc051cfc91/data_processing_file_NN.R).\newline\newline\
+For other examples of data cleaning, please see an example \textcolor{blue}{\href{https://github.com/EiA2030/sandman/blob/04be1718d744cf05b785c24f90308bbc051cfc91/data_processing_file_NN.R}{script on this Github link}}.\newline\newline\
 
 :::: {.blackbox data-latex=""}
 ::: {.center data-latex=""}
@@ -221,7 +220,7 @@ The following code illustrates how to visualize Primary Product Harvested Yield,
 
 ### General View
 
-To visualize the results we will make use of wide use of [`tidyverse`](https://www.tidyverse.org/) libraries which offer a lot of flexibility to visualize data. There are other alternatives such as [`plotly`](https://plotly.com/). To install these tools you will need to run `install.packages("<package-name>")` for each package before running the following examples.
+To visualize the results we will make use of wide use of \textcolor{blue}{\href{https://www.tidyverse.org/}{`tidyverse`}} libraries which offer a lot of flexibility to visualize data. There are other alternatives such as \textcolor{blue}{\href{https://www.tidyverse.org/}{`plotly`}}. To install these tools you will need to run `install.packages("<package-name>")` for each package before running the following examples.
 
 The below block of code initializes the visualization graphics to define an object (`them2`) which controls things such as background color, chart grid lines, legends and titles, etc.\newline
 
