@@ -1,5 +1,3 @@
-
-
 ---
 title: \LARGE \vspace{1in} Validation Analytics Guideline
 date: \LARGE 2024
@@ -17,15 +15,7 @@ output:
   tidy: yes
   latex_engine: pdflatex
   word_document: default
-
 header-includes:
-- \usepackage{xcolor} 
-- \usepackage{hyperref} 
-- \usepackage{framed}
-- \setlength{\fboxsep}{.8em}
-- \definecolor{nbox}{rgb}{100,100,100}
-- \usepackage{tcolorbox}
-- \newtcolorbox{blackbox}{colback=nbox, colframe=orange, coltext=black, boxsep=5pt, arc=4pt}
 - \usepackage{graphicx}
 - \usepackage{fancyhdr}
 - \fancyfoot[C]{\includegraphics{./www/Logo/footer.png}}
@@ -54,148 +44,116 @@ knitr::opts_chunk$set(tidy = TRUE, warning=FALSE, comment = NA)
 ```
 
 # Introduction
-We designed this document to assist the Use Case teams in understanding the validation data set and the related standard analytics including, data preparation techniques, and the visualization of validation data. We pay specific attention to the parameters measuring effectively Agronomic gain key performance indicators (KPIs). The KPIs of each Use Case will be integrated into the CGIAR Excellence in Agronomy (EiA) Initiative \textcolor{blue}{\href{https://eia-transform.shinyapps.io/impact/}{ Impact Dashboard}}.
+We designed this document to assist the Use Case teams in understanding the validation data set and the related standard analytics including, data preparation techniques, and the visualization of validation data. We pay specific attention to the parameters measuring effectively Agronomic gain key performance indicators (KPIs). The KPIs of each Use Case will be integrated into [Excellence in Agronomy (EiA) Impact Dashboard](https://eia-transform.shinyapps.io/impact/). 
 
-While TRANSFORM is ready to analyze the validation data for display on the impact dashboard it is vital that Use Case teams engages in data cleaning to, for example, verify the validity of field set-ups and data submissions. Nevertheless, we strongly encourage Use Cases to run the analysis in parallel for their own insights and to ascertain the validity of the results.
+While TRANSFORM is ready to analyze the validation data for display on the impact dashboard it is vital that the Use Case team engages in data cleaning, i.e. verification of valid field set-ups and data submissions. Nevertheless, we strongly encourage Use Case   to run the analysis in parallel for their own insights and to ascertain the validity of the results.
 
-The KPI documentation (Saito et al., 2022) is accessible via this \textcolor{blue}{\href{https://cgspace.cgiar.org/items/624c2bf3-6887-4036-b46f-19bb6f223705}{link}}. The KPI guide provides a description of various KPIs and how to calculate them. They cover land productivity and its stability, resource use efficiency and soil health and are used across geographies, farming systems, and research and development (R&D) stages (like validation and piloting stages) (Saito et al., 2022)
+The KPI documentation (Saito et al., 2022) is accessible via [<span style="color: red;font-weight: bold;">this link</span>](https://cgspace.cgiar.org/items/624c2bf3-6887-4036-b46f-19bb6f223705). The KPI guide provides a description of various KPIs and how to calculate them. They cover land productivity and its stability, resource use efficiency and soil health and are used across geographies, farming systems, and research and development (R&D) stages (like validation and piloting stages) (Saito et al., 2022)
 
 The graphic below shows the various stages of the data flow during validation exercise. The highlighted section (in red) is what will be highlighted in detail in this analytics document.
 
 ```{r intropic ,out.width="100%", echo=FALSE, fig.cap="Validation data flow stages in the EiA ecosystem: Collected validation data is cleaned and transformed then passed to the data pool and finaly impact dashboard for visualization"}
-knitr::include_graphics("./www/Logo/intro.png")
+knitr::include_graphics("./www/Logo/Validation Analytics Guidelines schema.png")
 
 ```
 
 # Validation Analysis
 
-Use Cases perform a validation exercise to test whether their Minimum Viable Product (MVP) meets the requirements (performance metric) that the Use Case postulated for each KPI. For more information on the protocol for validation exercises see Kreye et al., 2023. The following steps are required before any analysis and visualization can be performed on the validation data.
+Use Cases perform a validation exercise to test whether their Minimum Viable Product (MVP) meets the requirements (performance metric) that the Use Case postulated for each KPI. For more information on the protocol for validation exercises see Kreye et al., 2023.
 
-\newpage
+The following steps are required before any analysis and visualization can be performed on the validation data.
+
+
 ## KPI Parameters
 
-Revisit your protocol and the your KPIs, Which KPIs did you select and what are the performance metrices that you expect your MVP to meet for each of these? The list of main KPIs considered in EiA Use Cases comprises Yield, Yield stability, Profit, Nutrient-use efficiency, NUE for N, NUE for P, NUE for K, Water productivity, Labor productivity, Soil organic carbon, yield-scaled GHGs and Product quality.
+Revisit your protocol and the your KPIs, Which KPIs did you select and what are the performance metrices that you expect your MVP to meet for each of these? The list of main KPIs considered in EiA Use Cases comprises Yield, Yield stability, Profit, Nutrient-use efficiency, NUE for N, NUE for P, NUE for K, Water productivity, Labor productivity, Soil organic carbon, yield-scaled GHGs, Product quality.
 
-Below is a description of the parameters for the calculations of yield, profitability (land productivity) and resource use efficiency and the required parameters for their KPI calculations (Saito et al., 2021). The following table is copied from the \textcolor{blue}{\href{https://cgspace.cgiar.org/items/624c2bf3-6887-4036-b46f-19bb6f223705}{KPI guide}}, which provides comprehensive insights on the KPIs.
+Below are required parameters for different KPI calculations (Saito et al., 2021).
 
-```{r table-kpipar, echo=FALSE, warning=FALSE, message=FALSE,comment = NA, tidy = TRUE, tidy.opts = list(width.cutoff = 100)}
-library(kableExtra)
+
+```{r table-kpipar, echo=FALSE, warning=FALSE, message=FALSE,comment = NA }
 kpipar <- read.csv("./samples/sampledata/var_desc.csv")
 kpipar <- as.data.frame(kpipar)
 names(kpipar) <- gsub("\\.", " ", names(kpipar))
-kpipar <- kpipar[,c(1,3,2,4)]
-
-kable(kpipar, align = "c") %>%
-  kable_styling(full_width = FALSE) %>%
-  column_spec(1, bold = T, width = "8em") %>%
-  column_spec(3, width = "10em") %>%
-  column_spec(2, width = "8em") %>%
-  column_spec(4, width = "15em") %>%
-  collapse_rows(columns = 1:4, valign = "middle")
+knitr::kable(kpipar, caption = "Table of Required KPI Variables")
 
 ```
 
-\newpage
 ## Data Cleaning
 
-Real data from the use cases will come in slightly different formats due to adjustments from the standard fieldbooks or ODK forms. *Data cleaning* entails the process of identifying and correcting errors, inconsistencies, or duplicates in a data set. In this guide we will not focus on the data cleaning steps, as these can differ from case to case depending on the purpose and the interest. However, it is important to notice that different cleaning purposes might result in different final results. Below is an example of data cleaning as performed in the \textcolor{blue}{\href{https://dc.eia.scio.services/}{Data Collection Monitoring Tool}}. Use cases that are collecting their data via the tool and downloading their data from there for analysis are already running some cleaning on their data. Below are examples steps.
+Real data from the use cases will come in slightly different formats due to adjustments from the standard fieldbooks or ODK forms. Data cleaning entails the process of identifying and correcting errors, inconsistencies, or duplicates in a data set. In this guide we will not focus on the data cleaning steps, as these can differ from case to case depending on the purpose and the interest. However, it is important to notice that different cleaning purposes might result in different final results. Below is an example of data cleaning as performed in the [Data Collection Monitoring Tool](https://dc.eia.scio.services/). Use cases that are collecting their data via the tool and downloading their data from there for analysis are already running some cleaning on their data. Below are examples steps.
 
-An initial data cleaning step would be to subset the data to relevant variables. For this and the following examples we will make use of the \textcolor{blue}{\href{https://www.tidyverse.org/}{tidyverse}} framework.\newline
+An initial data cleaning step would be to subset the data to relevant variables. For this and the following examples we will make use of the [tidyverse](https://www.tidyverse.org/) framework.
 
-```{r data-cleaning1, warning=FALSE, message=FALSE,comment = NA, tidy = TRUE, tidy.opts = list(width.cutoff = 75)}
+```{r data-cleaning1}
   # Load the necessary R packages
-  library(tidyverse)
+  suppressPackageStartupMessages(library(tidyverse))
 
   # Read the data
   file <- "./samples/sampledata/sample_yield_data.csv"
   raw.data <- read.csv(file)
   
   # Variables to be used
-  vars <- c("household", "enumerator", "region",
-            "plot_yield_T2", "plot_length_T2",	"plot_width_T2",
-            "plot_yield_T1", "plot_length_T1", "plot_width_T1",
-            "riceSystem", "moisture_T2", "moisture_T1")
+  vars <- c("HHID", "EAID", "Region", "T1_Yplot",	"plotL1_BRR",	"plotW1_BRR",	"T2_Yplot", "plotL1_SSR", "plotW1_SSR", "riceSystem", "moistureBRR", "moistureSSR")
   
   sub.data <- raw.data %>% 
     select(vars)
   
-  # Remove duplicated household entries
+  # Remove duplicated enumerator entries, keeping the last entry by date of duplicated records
   clean.data <- sub.data %>%
-    distinct(household, .keep_all = TRUE)
+    distinct(EAID, .keep_all = TRUE)
   
-  # Filter out moisture higher than 20%
-  valid.data <- clean.data %>%
-    filter(across(c(moisture_T2, moisture_T1), ~. <= 20))
+  # OR
+  #drop duplicated values
+  clean.data <- clean.data[!duplicated(clean.data), ]
+  
+  #
+
+  
+  # Here maybe we need to add an example of cleaning... Not sure what would be a good example- Providing a link to SAnDMan repo below for user to be guided on any specific issues. 
 ```
 
-Use the above snippet as an example and substitute as per your own specific needs. For example, substitute the variables in the `vars` with the list of your own variables that are needed from your data set. In any case, the Use Case team must perform data cleaning to calculate the required standard parameters.\newline\newline\newline\newline\newline\newline\newline\newline\newline\newline\newline\newline\newline\newline\newline\newline\newline
+For further detailed cleaning code details please see an example [script on this Github link](https://github.com/EiA2030/sandman/blob/04be1718d744cf05b785c24f90308bbc051cfc91/data_processing_file_NN.R).
 
-Additionally, the data can also be converted into a \textcolor{blue}{\href{https://vita.had.co.nz/papers/tidy-data.pdf}{tidy data}} structure, for more explicit and standard format. For example: \newline
+Use the above snippet as an example and substitute as per your own specific needs. For example, substitute the "..." with the list of your own variables that are not needed from your data set. In any case, the use case team must perform data cleaning to calculate the required standard parameters.
 
-```{r data-cleaning2, warning=FALSE, message=FALSE,comment = NA, tidy = TRUE, tidy.opts = list(width.cutoff = 75)}
-`  # Transform data from wide to long format`
-`  tidy.data <- valid.data %>%`
-`    pivot_longer(`
-`      cols = c(plot_yield_T2, plot_length_T2, plot_width_T2, moisture_T2,`
-`               plot_yield_T1, plot_length_T1, plot_width_T1, moisture_T1),`
-`      names_to = c("variable", "treatment"),`
-`      names_pattern = "(.*)_(T[12])",`
-`      values_to = "value"`
-`    )%>%`
-`  pivot_wider(`
-`    names_from = variable,`
-`    values_from = value`
-`  )`
-```
+\textbf{Data cleaning – what to look at:}
 
-For other examples of data cleaning, please see an example \textcolor{blue}{\href{https://github.com/EiA2030/sandman/blob/04be1718d744cf05b785c24f90308bbc051cfc91/data_processing_file_NN.R}{script on this Github link}}.\newline\newline\
-
-:::: {.blackbox data-latex=""}
-::: {.center data-latex=""}
-**Data cleaning – what to look at:**\newline
-:::
-
-The obvious: are there any outliers? In general, applies to all input data. Review your data collection form and check all parameters that are relevant. Yield will be a first choice, but there are also other parameters that help understanding whether the output KPI data are good enough for the validation analysis. Among these are: number of plants per plot, plot dimensions, spacing, confirmations of inputs, plot management (like weeding) as well as the evaluation of the side-by-side comparison by the EA for stresses (group name) can help the assessment whether or not to include the data of a specific farm. However, do make an effort to scrutinize carefully whether data can be rightfully excluded. Keep a log with rules for exclusion.
-::::
+The obvious: are there any outliers? In general, applies to all input data. Review your data collection form and check all parameters that are relevant. Yield will be a first choice, but there are also other parameters that help understanding whether the output KPI data are good enough for the validation analysis. Among these are (list is not complete…): number of plants per plot, plot dimensions, spacing, confirmations of inputs, plot management (like weeding) as well as the evaluation of the side-by-side comparison by the EA for stresses (group name) can help the assessment whether or not to include the data of a specific farm. However, do make an effort to scrutinize carefully whether data can be rightfully excluded. Keep a log with rules for exclusion. 
 
 
-<!-- \textbf{Data cleaning – what to look at:} -->
-
-<!-- The obvious: are there any outliers? In general, applies to all input data. Review your data collection form and check all parameters that are relevant. Yield will be a first choice, but there are also other parameters that help understanding whether the output KPI data are good enough for the validation analysis. Among these are: number of plants per plot, plot dimensions, spacing, confirmations of inputs, plot management (like weeding) as well as the evaluation of the side-by-side comparison by the EA for stresses (group name) can help the assessment whether or not to include the data of a specific farm. However, do make an effort to scrutinize carefully whether data can be rightfully excluded. Keep a log with rules for exclusion. -->
-
-\newpage
 ## Data Transformations
 
 Very likely, you will need to transform your data to be able to report on your KPIs. For example, the KPI is dry matter primary yield in kg per ha and the use case has recorded the fresh yield of the product in kg), the plot length and width (m), and also the moisture content (%). From this the use case can calculate the KPI as:
 
 
-$Yield (\frac{kg}{ha}) = \frac{Fresh Weight (kg) * (Moisture/100)}{(Plot Length (m) * Plot Width (m))/10000}$
+$Yield = \frac{Fresh Weight (kg) * (1-(Moisture/100))}{(Plot Length (m) * Plot Width (m))/10000}$
 
 In another use case, the required KPI may be primary fresh yield in kg per ha following this calculation: 
 
 
-$Yield (\frac{kg}{ha}) = \frac{Fresh Weight (kg)}{(Plot Length (m) * Plot Width (m))/10000}$
+$Yield = \frac{Fresh Weight (kg)}{(Plot Length (m) * Plot Width (m))/10000}$
 
-In essence, different KPIs require different variables (explained in table 1) which require specific unit conversions and data transformations. On your data, this will require some additional steps of organizing (and transforming) it to get to the final KPI calculations.\newline
+In essence, different KPIs require different variables (explained in table 1) which require specific unit conversions and data transformations. On your data, this will require some additional steps of organizing (and transforming) it to get to the final KPI calculations.
 
-```{r data-transform1, tidy=TRUE, tidy.opts = list(width.cutoff = 75)}
+```{r data-transform1}
   # Calculate Primary Productivity Harvested Yield (PPHY)
-  yield.vars <- c("household", "enumerator", "region", "plot_yield_T2",	"plot_length_T2",	"plot_width_T2",	"riceSystem", "moisture_T2")
+  yield.vars <- c("HHID", "EAID", "Region", "T1_Yplot",	"plotL1_BRR",	"plotW1_BRR",	"riceSystem", "moistureBRR")
   pphy.data <- clean.data %>%
     select(yield.vars)
   
   # Generate Primary Productivity Harvested Yield (PPHY)
-  pphy <- (pphy.data$plot_yield_T2 * (pphy.data$moisture_T2/100)) / ((pphy.data$plot_length_T2 * pphy.data$plot_width_T2)/10000)
+  pphy <- (pphy.data$T1_Yplot * (pphy.data$moistureBRR/100)) / ((pphy.data$plotL1_BRR * pphy.data$plotW1_BRR)/10000)
 
   # Create table with transformation
   kpi.data <- cbind(pphy.data, pphy) %>%
-    select("household", "region", "riceSystem", "pphy")
+    select("HHID", "Region", "riceSystem", "pphy")
 ```
 
 The example above can be implemented for all other KPI metrics as needed by the use case. Following sections will focus on demonstrating visualization examples as produced in the EiA’s impact dashboard.
 
 
-\newpage
+
 ## Visualization
 
 Description of terms used:
@@ -216,15 +174,11 @@ The Detailed view delves into more statistical analysis to compare the distribut
 
 ### I. KPI Land Productivity and its Stability
 
-The following code illustrates how to visualize Primary Product Harvested Yield, Secondary Product Harvested Yield, and Profit.
+The following code illustrates how to visualize  Primary Product Harvested Yield, Secondary Product Harvested Yield, and Profit.
 
 ### General View
 
-To visualize the results we will make use of wide use of \textcolor{blue}{\href{https://www.tidyverse.org/}{`tidyverse`}} libraries which offer a lot of flexibility to visualize data. There are other alternatives such as \textcolor{blue}{\href{https://www.tidyverse.org/}{`plotly`}}. To install these tools you will need to run `install.packages("<package-name>")` for each package before running the following examples.
-
-The below block of code initializes the visualization graphics to define an object (`them2`) which controls things such as background color, chart grid lines, legends and titles, etc.\newline
-
-```{r libraries, warning=FALSE, message=FALSE, comment = NA, tidy=TRUE, tidy.opts = list(width.cutoff = 40)}
+```{r libraries, include=FALSE,  echo=TRUE}
 
 #Load libraries
 library(tidyr)
@@ -235,20 +189,13 @@ library(plotly)
 
 #ggplot theme; can be adjusted as required.
 them2 <- theme(panel.background = element_rect(fill = "white"), 
-               plot.background = element_rect(fill = "white",
-                                              color = NA), 
+               plot.background = element_rect(fill = "white", color = NA), 
                panel.grid.major = element_blank(),
-               plot.title =element_text(color = "#CD7F32",
-                                        size=13),
-               strip.text.x = element_text(size = 10,
-                                           color = "black",
-                                           face = "bold"),
-               axis.text = element_text(color = "black",
-                                        face = "bold",
-                                        size=10),
+               plot.title =element_text(color = "#CD7F32",size=13),
+               strip.text.x = element_text(size = 10, color = "black", face = "bold"),
+               axis.text=element_text(color = "black",face = "bold",size=10),
                axis.title.x = element_text(margin = unit(c(5, 0, 0, 0), "mm")),
-               axis.title = element_text(color = "black",
-                                         size=12),
+               axis.title=element_text(color = "black",size=12),
                legend.title = element_blank(),
                legend.text = element_text(size = 12),
                legend.background = element_rect(fill = "white"),
@@ -257,82 +204,35 @@ them2 <- theme(panel.background = element_rect(fill = "white"),
                axis.line.y = element_blank())
 ```
 
-A preliminary visualization to compare the results from the MVP is to check the average treatment (control vs. MVP) yield responses. The below example shows how to construct a barplot displaying the average yield response to 3 treatments (T1, T2, T3) in 3 different regions, using the visualization style defined in `them2`.\newline
 
-```{r t1, echo = TRUE, results = FALSE, out.width = "0%"}
-
-`  # Define the path to the file location`
-`  file <- "./samples/sampledata/sample_Yieldiff.csv"`
-
-`  # Read the data`
-`  dataHm.pp1 <- read.csv(file)`
-
-`  #Variables of interest`
-`  subset_df <- dataHm.pp1[, c("household", "region","riceSystem",
-                               "T2_yieldha","T1_yieldha","T3_yieldha", "eSSR","incrSSR" )]`
-  subset_df<-distinct(subset_df)
-
-`  # Group by region and calculate the averages`
-`  averages_by_state <- subset_df %>%
-    group_by(region) %>%
-    summarise(
-      T2 = mean(T2_yieldha, na.rm = TRUE),
-      T1 = mean(T1_yieldha, na.rm = TRUE),
-      T3 = mean(T3_yieldha, na.rm = TRUE)
-    )
-  averages_by_state <- averages_by_state %>%
-    pivot_longer(!region, names_to = "Treatment", values_to = "Average")`
-
-`  #plot data`
-`  ggplot(
-    averages_by_state, 
-    aes(
-      fill=Treatment,
-      y=Average, x=region 
-    )) +  
-    geom_bar(position="dodge", stat="identity") +  
-    xlab("Location") +
-    ylab(" Average grain yield (t/ha)") +  
-    scale_fill_manual(values = c("T2" = "#004080",
-                                 "T1" = "#4caf50",
-                                 "T3" = "#c26e60")) +  
-    #theme as defined at start
-    them2
-`
-
-```
-
-```{r phpy-bar, echo = FALSE, fig.show = 'hold', fig.cap = "Yield distribution"}
+```{r"}
 
 # Define the path to the file location
-file <- "./samples/sampledata/sample_Yieldiff.csv"
-
+file <- "./samples/sampledata/sample_yield_data.csv"
 # Read the data
 dataHm.pp1 <- read.csv(file)
-
 #Variables of interest
-subset_df <- dataHm.pp1[, c("household", "region","riceSystem",
-                            "T2_yieldha","T1_yieldha","T3_yieldha",
+subset_df <- dataHm.pp1[, c("HHID", "Region","riceSystem","T2_Yha","T1_Yha","T3_Yha", 
                             "eSSR","incrSSR" )]
 subset_df<-distinct(subset_df)
 
 # Group by region and calculate the averages
 averages_by_state <- subset_df %>%
-  group_by(region) %>%
+  group_by(Region) %>%
   summarise(
-    T2 = mean(T2_yieldha, na.rm = TRUE),
-    T1 = mean(T1_yieldha, na.rm = TRUE),
-    T3 = mean(T3_yieldha, na.rm = TRUE)
+    T2 = mean(T2_Yha, na.rm = TRUE),
+    T1 = mean(T1_Yha, na.rm = TRUE),
+    T3 = mean(T3_Yha, na.rm = TRUE)
   )
 averages_by_state <- averages_by_state %>%
-  pivot_longer(!region, names_to = "Treatment", values_to = "Average")
+  pivot_longer(!Region, names_to = "Treatment", values_to = "Average")
 
 #plot data
 ggplot(
   averages_by_state, 
   aes(
   fill=Treatment,
-  y=Average, x=region 
+  y=Average, x=Region 
   )) +  
   geom_bar(position="dodge", stat="identity") +  
   xlab("Location") +
@@ -343,125 +243,128 @@ ggplot(
 
 ```
 
-\newpage
+```{r phpy-bar,echo=FALSE, warning=FALSE, message=FALSE,comment = NA, tidy = TRUE, fig.show='hold', fig.cap="Yield distribution"}
 
-Additional comparison of the treatments (control vs. MVP, etc)  showing the percentage of trials resulting in benefits in terms of increased yield responses to the validation experiment. Pie charts are easy to interpret and summarize results in aggregated relative numbers.\newline
+# Define the path to the file location
+file <- "./samples/sampledata/sample_yield_data.csv"
+# Read the data
+dataHm.pp1 <- read.csv(file)
+#Variables of interest
+subset_df <- dataHm.pp1[, c("HHID", "Region","riceSystem","T2_Yha","T1_Yha","T3_Yha", 
+                            "eSSR","incrSSR" )]
+subset_df<-distinct(subset_df)
 
-```{r t2, echo = TRUE, results = FALSE, out.width = "0%"}
-`  # Pie plot to show  difference (positive vs negative)`
-`  # incrSSR  is the change variable (T1 - T2)`
+# Group by region and calculate the averages
+averages_by_state <- subset_df %>%
+  group_by(Region) %>%
+  summarise(
+    T2 = mean(T2_Yha, na.rm = TRUE),
+    T1 = mean(T1_Yha, na.rm = TRUE),
+    T3 = mean(T3_Yha, na.rm = TRUE)
+  )
+averages_by_state <- averages_by_state %>%
+  pivot_longer(!Region, names_to = "Treatment", values_to = "Average")
 
-`  # Calculate negative and positive change percentage values`
-`  x <- (subset_df[! is.na(subset_df$incrSSR),] )$incrSSR`
-`  xi <- x[x<0]`
-`  xj <- x[x>0]`
-`  pos <- (length(xj)/length(x))*100`
-`  neg <- (length(xi)/length(x))*100`
-`  ds <- data.frame(labels = c("Yield Difference <br> (T1 yield - T2 yield)", 
-                              "Positive change", "Negative change"),
-                   values = c(NA, pos, neg))`
+#plot data
+ggplot(
+  averages_by_state, 
+  aes(
+  fill=Treatment,
+  y=Average, x=Region 
+  )) +  
+  geom_bar(position="dodge", stat="identity") +  
+  xlab("Location") +
+  ylab(" Average grain yield (t/ha)") +  
+  scale_fill_manual(values = c("T2" = "#004080", "T1" = "#4caf50", "T3" = "#c26e60")) +  
+  #theme as defined at start
+  them2
 
-`  # Plot the data`
-`  plot_ly(data = ds,
-           labels = ~labels,
-           values = ~values,
-           parents = c("", "Yield Difference <br> (T1 yield - T2 yield)", 
-                       "Yield Difference <br> (T1 yield - T2 yield)"),  
-           type = "sunburst",
-           branchvalues = 'total',
-           textinfo = "label+percent entry",
-           hoverinfo = "text",
-           hovertext = paste("% of farmers experiencing<br>", 
-                             tolower(ds$labels), "from T1")) %>%
-    layout(title = 'Effects on grain yield of T1 vs T2')`
 
 ```
 
-```{r phpy-pie, echo = FALSE, out.width = "80%", fig.align = "center"}
 
-# library(plotly)
-# 
-# #Pie plot to show  difference (positive vs negative)
-# #incrSSR  is the change variable (T1 - T2)
-# 
-# #calculate negative and positive change percentage values
-# x <- (subset_df[! is.na(subset_df$incrSSR),] )$incrSSR
-# xi <- x[x<0]
-# xj <- x[x>0]
-# pos <- (length(xj)/length(x))*100
-# neg <- (length(xi)/length(x))*100
-# ds <- data.frame(labels = c("Yield Difference <br> (T1 yield - T2 yield)",
-#                             "Positive change", "Negative change"),
-#                  values = c(NA, pos, neg))
-# 
-# #plot the data
-# p <- suppressWarnings(plot_ly(data = ds,
-#              labels = ~labels,
-#              values = ~values,
-#              parents = c("", "Yield Difference <br> (T1 yield - T2 yield)",
-#                          "Yield Difference <br> (T1 yield - T2 yield)"),
-#              type = "sunburst",
-#              branchvalues = 'total',
-#              textinfo = "label+percent entry",
-#              hoverinfo = "text",
-#              hovertext = paste("% of farmers experiencing<br>",
-#                                tolower(ds$labels), "from T1"))) %>%
-#   layout(title = 'Effects on grain yield of T1 vs T2')
-# p
-# suppressWarnings(save_image(p, './www/Logo/sunburst.png'))
-knitr::include_graphics("./www/Logo/sunburst.png", )
-```
+
+---
 
 \newpage
+
+```{r"}
+#Pie plot to show  difference (positive vs negative)
+#incrSSR  is the change variable (T1 - T2)
+
+#calculate negative and positive change percentage values
+x <- (subset_df[! is.na(subset_df$incrSSR),] )$incrSSR
+xi <- x[x<0]
+xj <- x[x>0]
+pos <- (length(xj)/length(x))*100
+neg <- (length(xi)/length(x))*100
+ds <- data.frame(labels = c("Yield Difference <br> (T1 yield - T2 yield)", 
+                            "Positive change", "Negative change"),
+                 values = c(NA, pos, neg))
+
+#plot the data
+plot_ly(data = ds,
+        labels = ~labels,
+        values = ~values,
+        parents = c("", "Yield Difference <br> (T1 yield - T2 yield)", 
+                    "Yield Difference <br> (T1 yield - T2 yield)"),  
+        type = "sunburst",
+        branchvalues = 'total',
+        textinfo = "label+percent entry",
+        hoverinfo = "text",
+        hovertext = paste("% of farmers experiencing<br>", 
+                          tolower(ds$labels), "from T1")) %>%
+  layout(title = 'Effects on grain yield of T1 vs T2')
+
+```
+
+
+ 
+
+```{r phpy-pie,echo=FALSE, warning=FALSE,message=FALSE, comment = NA, tidy = TRUE,fig.show='hold', fig.cap="Effects on grain yield of T1 vs T2"}
+
+#Pie plot to show  difference (positive vs negative)
+#incrSSR  is the change variable (T1 - T2)
+
+#calculate negative and positive change percentage values
+x <- (subset_df[! is.na(subset_df$incrSSR),] )$incrSSR
+xi <- x[x<0]
+xj <- x[x>0]
+pos <- (length(xj)/length(x))*100
+neg <- (length(xi)/length(x))*100
+ds <- data.frame(labels = c("Yield Difference <br> (T1 yield - T2 yield)", 
+                            "Positive change", "Negative change"),
+                 values = c(NA, pos, neg))
+
+#plot the data
+plot_ly(data = ds,
+        labels = ~labels,
+        values = ~values,
+        parents = c("", "Yield Difference <br> (T1 yield - T2 yield)", 
+                    "Yield Difference <br> (T1 yield - T2 yield)"),  
+        type = "sunburst",
+        branchvalues = 'total',
+        textinfo = "label+percent entry",
+        hoverinfo = "text",
+        hovertext = paste("% of farmers experiencing<br>", 
+                          tolower(ds$labels), "from T1")) %>%
+  layout(title = 'Effects on grain yield of T1 vs T2')
+
+```
+
+
+
+---
+
+
+\newpage
+
 
 ### Detailed View
 
-This section provides the example code blocks in order to produce more detailed visualization of the results. These include scatter plots showing the explicit distribution of the observations or cumulative distributions (CDF) to visualize primary yield, secondary yield or profit distributions.\newline
+Visualizing primary yield, secondary yield or profit distribution
 
-Below provides the code necessary to generate a scatter plot of the grain yield (tonne/ha) observed in the T1 and T3 compared to T2 (control). 
-This section provides the example code blocks in order to produce more detailed visualization of the results. These include scatter plots showing the explicit distribution of the observations or cumulative distributions (CDF) to visualize primary yield, secondary yield or profit distributions.\newline
-
-```{r t3, echo = TRUE, results = FALSE, out.width = "0%"}
-
-  # Detail-scatter plot
-
-  # Define the path to the file location
-  file <- "./samples/sampledata/sample_yield_data.csv"
-
-  # Read the data
-  dataHm.pp1 <- read.csv(file)
-
-  # Transform data accordingly
-  dataHm.pp1 <- dataHm.pp1 %>%
-    mutate(
-      riceSystem = case_when(
-        riceSystem == "rainfedLowland" ~ "Rainfed lowland",
-        riceSystem == "irrigated" ~ "Irrigated",
-        TRUE ~ riceSystem
-      )
-    )
-  dataHm.pp1$region <- toTitleCase(dataHm.pp1$region)
-  dataHm.pp1 <- dataHm.pp1[!is.na(dataHm.pp1$T2_yieldha),]
-
-  # Plot the data
-`  ggplot(
-    dataHm.pp1, 
-    aes(
-      T2_yieldha, T1_yieldha
-      )
-    ) +
-    geom_point(size = 1) +
-    geom_abline(slope = 1, intercept = 0, size = 0.5, colour = "grey") +
-    facet_wrap(~region) +
-    xlab("Grain yield (t/ha) of the control (T2)") +  
-    ylab("Grain yield (t/ha) of the MVP (T1)") + 
-    labs(title = "Yield distribution") +  
-    #theme as defined above
-    them2
-`
-```
-
-```{r phpy-detail, echo=FALSE, warning=FALSE, message=FALSE,comment = NA, fig.show='hold', fig.cap="Yield distribution"}
+```{r"}
 
 # Detail-scatter plot
 
@@ -478,21 +381,90 @@ dataHm.pp1 <- dataHm.pp1 %>%
       TRUE ~ riceSystem
     )
   )
-dataHm.pp1$region <- toTitleCase(dataHm.pp1$region)
-dataHm.pp1 <- dataHm.pp1[!is.na(dataHm.pp1$T2_yieldha),]
+dataHm.pp1$Region <- toTitleCase(dataHm.pp1$Region)
+dataHm.pp1 <- dataHm.pp1[!is.na(dataHm.pp1$T2_Yplot),]
 
 #plot the data
 ggplot(
   dataHm.pp1, 
   aes(
-    T2_yieldha, T1_yieldha
+    T2_Yplot, yield, 
+    colour = plot 
     )
-  ) +
+  ) +  
   geom_point(size = 1) +
-  geom_abline(slope = 1, intercept = 0, size = 0.5, colour = "grey") +
-  facet_wrap(~region) +
+  geom_abline(slope = 1, intercept = 0, size = 0.5, colour = "grey") +  
+  scale_x_continuous(
+    minor_breaks = seq(  
+      min(dataHm.pp1$T2_Yplot, na.rm = TRUE),  
+      max(dataHm.pp1$T2_Yplot, na.rm = TRUE),  
+      by = 0.5  
+    )  
+  ) +  
+  scale_y_continuous(  
+    minor_breaks = seq(  
+      min(dataHm.pp1$yield, na.rm = TRUE),  
+      max(dataHm.pp1$yield, na.rm = TRUE),  
+      by = 0.5  
+    )  
+  ) +  
+  facet_wrap(~Region) +  
   xlab("Grain yield (t/ha) of the control (T2)") +  
-  ylab("Grain yield (t/ha) of the MVP (T1)") + 
+  ylab(" Grain yield (T1 and T3) (t/ha)") +    
+  labs(title = "Yield distribution") +  
+   #theme as defined above
+  them2  
+
+
+```
+
+```{r phpy-detail,echo=FALSE, warning=FALSE, message=FALSE,comment = NA, fig.show='hold', fig.cap="Yield distribution"}
+
+# Detail-scatter plot
+
+# Define the path to the file location
+file <- "./samples/sampledata/sample_yield_data.csv"
+# Read the data
+dataHm.pp1 <- read.csv(file)
+#transform data accordingly
+dataHm.pp1 <- dataHm.pp1 %>%
+  mutate(
+    riceSystem = case_when(
+      riceSystem == "rainfedLowland" ~ "Rainfed lowland",
+      riceSystem == "irrigated" ~ "Irrigated",
+      TRUE ~ riceSystem
+    )
+  )
+dataHm.pp1$Region <- toTitleCase(dataHm.pp1$Region)
+dataHm.pp1 <- dataHm.pp1[!is.na(dataHm.pp1$T2_Yplot),]
+
+#plot the data
+ggplot(
+  dataHm.pp1, 
+  aes(
+    T2_Yplot, yield, 
+    colour = plot 
+    )
+  ) +  
+  geom_point(size = 1) +
+  geom_abline(slope = 1, intercept = 0, size = 0.5, colour = "grey") +  
+  scale_x_continuous(
+    minor_breaks = seq(  
+      min(dataHm.pp1$T2_Yplot, na.rm = TRUE),  
+      max(dataHm.pp1$T2_Yplot, na.rm = TRUE),  
+      by = 0.5  
+    )  
+  ) +  
+  scale_y_continuous(  
+    minor_breaks = seq(  
+      min(dataHm.pp1$yield, na.rm = TRUE),  
+      max(dataHm.pp1$yield, na.rm = TRUE),  
+      by = 0.5  
+    )  
+  ) +  
+  facet_wrap(~Region) +  
+  xlab("Grain yield (t/ha) of the control (T2)") +  
+  ylab(" Grain yield (T1 and T3) (t/ha)") +    
   labs(title = "Yield distribution") +  
    #theme as defined above
   them2  
@@ -501,36 +473,14 @@ ggplot(
 
 ```
 
-\newpage
-
-Cumulative distributions allow to see which probability of the sample distribute across negative and positive impacts. This allows to better understand how treatments compare and across the probability distributions.
-
-```{r t4, echo = TRUE, results = FALSE, out.width = "0%"}
-
-`  # eSSR is the difference in yield between the treatments (T1-T2)`
-`  # riceSystem used to compare different attributes can also be landscapes.`
-
-`  # Define the path to the file location`
-`  file <- "./samples/sampledata/sample_Yieldiff.csv"`
-`  # Read the data`
-`  yieldiff <- read.csv(file)`
-
-`  # Plot the data`
-`  p1 <- ggplot(yieldiff, aes(eSSR, ecdf, colour=riceSystem))`
-`  p1 + geom_point(size=1) +
-    geom_ribbon(aes(ymin = lower,
-                    ymax = upper),
-                alpha=.2) +
-    geom_vline(xintercept = 0, size = 0.5, colour = "grey") +
-    xlab("Yield difference (T1 - T2) (t/ha)") +
-    labs(title="Comparison of yields for site-specific (T1) and control (T2)") +
-    ylab("Cumulative probability") +
-    facet_wrap(~region) +
-    them2`
-```
 
 
-```{r phpy-cdf, echo = FALSE, warning = FALSE, message = FALSE, comment = NA, fig.show = 'hold', fig.cap = "Comparison of yields for site-specific (T1) and control (T2)"}
+---
+
+
+Visualizing difference in primary yield, secondary yield or profit.
+
+```{r"}
 
 # Detail-cumulative distribution
 
@@ -543,7 +493,7 @@ file <- "./samples/sampledata/sample_Yieldiff.csv"
 yieldiff <- read.csv(file)
 
 #plot the data
-p1 <- ggplot(yieldiff, aes(eSSR, ecdf, colour=riceSystem))
+p1<-ggplot(yieldiff, aes(eSSR, ecdf, colour=riceSystem))
 p1+geom_point(size=1)+
   geom_ribbon(aes(ymin = lower,
                   ymax = upper,
@@ -553,10 +503,44 @@ p1+geom_point(size=1)+
   xlab("Yield difference (T1 - T2) (t/ha)") +
   labs(title="Comparison of yields for site-specific (T1) and control (T2)")+
   ylab("Cumulative probability") +
-  facet_wrap(~region)+
+  facet_wrap(~Region)+
   them2
 
 ```
+
+
+```{r echo=FALSE, warning=FALSE, message=FALSE,comment = NA, fig.show='hold',  fig.cap="Comparison of yields for site-specific (T1) and control (T2"}
+
+
+# Detail-cumulative distribution
+
+#eSSR is the difference in yield between the treatments (T1-T2)
+#riceSystem used to compare different attributes can also be landscapes.
+
+# Define the path to the file location
+file <- "./samples/sampledata/sample_Yieldiff.csv"
+# Read the data
+yieldiff <- read.csv(file)
+
+#plot the data
+p1<-ggplot(yieldiff, aes(eSSR, ecdf, colour=riceSystem))
+p1+geom_point(size=1)+
+  geom_ribbon(aes(ymin = lower,
+                  ymax = upper,
+  ),
+  alpha=.2)+
+  geom_vline(xintercept = 0, size = 0.5, colour = "grey")+
+  xlab("Yield difference (T1 - T2) (t/ha)") +
+  labs(title="Comparison of yields for site-specific (T1) and control (T2)")+
+  ylab("Cumulative probability") +
+  facet_wrap(~Region)+
+  them2
+
+```
+
+
+
+---
 
 \newpage
 
@@ -567,39 +551,39 @@ The following code illustrates how to visualize Nutrient-Use Efficiency, Water-U
 ### General Overview
 
 
-```{r t5, echo = TRUE, warning = FALSE, message = FALSE, comment = NA, results = FALSE, out.width = "0%"}
-`  # Bar plot to show distribution for various treatments across regions`
+```{r"}
+#Bar plot to show distribution for various treatments across regions
 
-`  # This example shows distribution of nitrogen-use efficiency.`
+#this example shows distribution of nitrogen-use efficiency.
 
-`  # Define the path to the file location`
-`  file <- "./samples/sampledata/sample_nue_data.csv"`
+# Define the path to the file location
+file <- "./samples/sampledata/sample_nue_data.csv"
+# Read the data
+dataHNm.nn1 <- read.csv(file)
+#Variables of interest
+nue_df <- dataHNm.nn1[, c( "Region", "plot"   , "useN" )]
+#Transform data and calculate average by group
+nue_df<-distinct(nue_df)
+nue_by_state <- nue_df %>%
+  group_by(Region, plot) %>%
+  summarise(avg_useN = mean(useN, na.rm = TRUE))
 
-`  # Read the data`
-`  dataHNm.nn1 <- read.csv(file)`
+#Plot the data
+ggplot(
+  nue_by_state, 
+  aes(fill=plot, y=avg_useN, x=Region)
+) + 
+  geom_bar(position="dodge", stat="identity") +  
+  xlab("Location") +  
+  ylab("Average (Kg grain per kg applied N))") +  
+  scale_fill_manual(values = c("T2" = "#004080", "T1" = "#4caf50", "T3" = "#c26e60")) +  
+  them2
 
-`  # Variables of interest`
-`  nue_df <- dataHNm.nn1[, c( "Region", "plot" , "useN" )]`
 
-`  # Transform data and calculate average by group`
-`  nue_df <- distinct(nue_df)`
-`  nue_by_state <- nue_df %>%
-    group_by(Region, plot) %>%
-    summarise(avg_useN = mean(useN, na.rm = TRUE))`
-
-`  # Plot the data`
-`  ggplot(
-    nue_by_state, 
-    aes(fill = plot, y = avg_useN, x = Region)) + 
-    geom_bar(position = "dodge", stat = "identity") +  
-    xlab("Location") +  
-    ylab("Average (Kg grain per kg applied N))") +  
-    scale_fill_manual(values = c("T2" = "#004080", "T1" = "#4caf50", "T3" = "#c26e60")) +  
-    them2`
 ```
 
 
-```{r nue-bar, echo = FALSE, warning = FALSE, message = FALSE, comment = NA, fig.show = 'hold', fig.cap = "Nitrogen Use Efficiency"}
+```{r nue-bar,echo=FALSE,warning=FALSE,message=FALSE,comment = NA, fig.show='hold', fig.cap="Nitrogen Use Efficiency"}
 #Bar plot to show distribution for arious treatments across regions
 
 #this example shows distribution of nitrogen-use efficiency.
@@ -630,19 +614,25 @@ ggplot(
 
 ```
 
+
+
+---
+
 \newpage
+
+### Detailed View
 
 Distribution: Nutrient-Use Efficiency, Water-Use Efficiency and Labor Productivity
 
-```{r t6, echo = TRUE, warning = FALSE, message = FALSE, comment = NA, results = FALSE, out.width = "0%"}
-`  # Box plot- nitrogen use efficiency`
+```{r"}
+#Box plot- nitrogen use efficiency
+ggplot(dataHNm.nn1, aes(plot, useN, fill = plot))+
+  geom_boxplot()+
+  facet_grid(riceSystem~Region)+
+  xlab("Plot") +
+  ylab("Kg grain per kg applied N") +
+  them2
 
-`  ggplot(dataHNm.nn1, aes(plot, useN, fill = plot)) +
-    geom_boxplot()+
-    facet_grid(riceSystem~Region)+
-    xlab("Plot") +
-    ylab("Kg grain per kg applied N") +
-    them2`
 ```
 
 
@@ -657,9 +647,7 @@ ggplot(dataHNm.nn1, aes(plot, useN, fill = plot))+
 
 ```
 
-\newpage
-
- <!-- \textbf{General Explanation:} -->
+ \textbf{General Explanation:}
 
 
 
