@@ -168,12 +168,12 @@ The obvious: are there any outliers? In general, applies to all input data. Revi
 Very likely, you will need to transform your data to be able to report on your KPIs. For example, the KPI is dry matter primary yield in kg per ha and the use case has recorded the fresh yield of the product in kg), the plot length and width (m), and also the moisture content (%). From this the use case can calculate the KPI as:
 
 
-$Yield (\frac{kg}{ha}) = \frac{Fresh Weight (kg) * (Moisture/100)}{(Plot Length (m) * Plot Width (m))/10000}$
+$Dry Yield (\frac{kg}{ha}) = \frac{Fresh Weight (kg) * (1-(\frac{Moisture}{100}))}{\frac{Plot Length (m) * Plot Width (m)}{10000}}$
 
 In another use case, the required KPI may be primary fresh yield in kg per ha following this calculation: 
 
 
-$Yield (\frac{kg}{ha}) = \frac{Fresh Weight (kg)}{(Plot Length (m) * Plot Width (m))/10000}$
+$Yield (\frac{kg}{ha}) = \frac{Fresh Weight (kg)}{\frac{Plot Length (m) * Plot Width (m)}{10000}}$
 
 In essence, different KPIs require different variables (explained in table 1) which require specific unit conversions and data transformations. On your data, this will require some additional steps of organizing (and transforming) it to get to the final KPI calculations.\newline
 
