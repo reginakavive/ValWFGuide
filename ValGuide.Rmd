@@ -63,8 +63,7 @@ The KPI documentation (Saito et al., 2022) is accessible via this \textcolor{blu
 The graphic below shows the various stages of the data flow during validation exercise. The highlighted section (in red) is what will be highlighted in detail in this analytics document.
 
 ```{r intropic ,out.width="100%", echo=FALSE, fig.cap="Validation data flow stages in the EiA ecosystem: Collected validation data is cleaned and transformed then passed to the data pool and finaly impact dashboard for visualization"}
-knitr::include_graphics("./www/Logo/intro.png")
-
+knitr::include_graphics("./www/Logo/Validation Analytics Guidelines schema.png")
 ```
 
 # Validation Analysis
