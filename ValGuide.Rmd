@@ -502,7 +502,7 @@ ggplot(
 
 \newpage
 
-Cumulative distributions allow to see which probability of the sample distribute across negative and positive impacts. This allows to better understand how treatments compare and across the probability distributions.
+Cumulative distributions allow to see which probability of the sample distribute across negative and positive impacts. Positive values indicate better performance of the technology (T1) vs the reference treatment (T2), and negative values indicate trials that have worse results for the new technology (T1) vs the reference treatment (T2). We add the upper and lower boundaries of a 95% confidence interval to better understand how treatments compare and across the probability distributions. 
 
 ```{r t4, echo = TRUE, results = FALSE, out.width = "0%"}
 
@@ -514,18 +514,30 @@ Cumulative distributions allow to see which probability of the sample distribute
 `  # Read the data`
 `  yieldiff <- read.csv(file)`
 
+`  # Calculate and add the empirical cumulative probability from the`
+`  # empirical cumulative distribution function (eCDF) and add the upper`
+`  # and lower 95% confidence intervals`
+`  yieldiff <- yieldiff[,c("region", "riceSystem", "eSSR")] %>%`
+`    group_by(region, riceSystem) %>%`
+`    arrange(region, riceSystem, eSSR) %>%`
+`    mutate(N = n(),`
+`           ecdf = ecdf(eSSR)(eSSR),`
+`           sd = sqrt(log(2/0.05)/(2*N)),`
+`           lower = pmax(1:N/N-sd, 0),`
+`           upper = pmin(1:N/N+sd, 1))`
+
 `  # Plot the data`
-`  p1 <- ggplot(yieldiff, aes(eSSR, ecdf, colour=riceSystem))`
-`  p1 + geom_point(size=1) +
-    geom_ribbon(aes(ymin = lower,
-                    ymax = upper),
-                alpha=.2) +
-    geom_vline(xintercept = 0, size = 0.5, colour = "grey") +
-    xlab("Yield difference (T1 - T2) (t/ha)") +
-    labs(title="Comparison of yields for site-specific (T1) and control (T2)") +
-    ylab("Cumulative probability") +
-    facet_wrap(~region) +
-    them2`
+`  ggplot(yieldiff, aes(eSSR, ecdf, colour=riceSystem)) +`
+`    geom_point() +`
+`    geom_ribbon(aes(ymin = lower,`
+`                    ymax = upper),`
+`                alpha=.2) +`
+`    geom_vline(xintercept = 0, size = 0.5, colour = "grey")+`
+`    xlab("Yield difference (T1 - T2) (t/ha)") +`
+`    labs(title="Comparison of yields for site-specific (T1) and control (T2)")+`
+`    ylab("Cumulative probability") +`
+`    facet_wrap(~region)+`
+`    them2`
 ```
 
 
@@ -541,13 +553,21 @@ file <- "./samples/sampledata/sample_Yieldiff.csv"
 # Read the data
 yieldiff <- read.csv(file)
 
+yieldiff <- yieldiff[,c("region", "riceSystem", "eSSR")] %>% 
+  group_by(region, riceSystem) %>% 
+  arrange(region, riceSystem, eSSR) %>%
+  mutate(N = n(),
+         ecdf = ecdf(eSSR)(eSSR),
+         sd = sqrt(log(2/0.05)/(2*N)),
+         lower = pmax(1:N/N-sd, 0),
+         upper = pmin(1:N/N+sd, 1))
+
 #plot the data
-p1 <- ggplot(yieldiff, aes(eSSR, ecdf, colour=riceSystem))
-p1+geom_point(size=1)+
+ggplot(yieldiff, aes(eSSR, ecdf, colour=riceSystem)) +
+  geom_point() + 
   geom_ribbon(aes(ymin = lower,
-                  ymax = upper,
-  ),
-  alpha=.2)+
+                  ymax = upper),
+              alpha=.2) +
   geom_vline(xintercept = 0, size = 0.5, colour = "grey")+
   xlab("Yield difference (T1 - T2) (t/ha)") +
   labs(title="Comparison of yields for site-specific (T1) and control (T2)")+
@@ -677,7 +697,7 @@ Saito K, Johnson J-M, Hauser S, Corbeels M, Devkota M and Casimero M. 2022. Guid
 
 # Contributors
 
-Regina Kilwenge (International Institute of Tropical Agriculture [IITA]), Eduardo Garcia (International Institute of Tropical Agriculture [IITA]) and Christine Kreye (International Institute of Tropical Agriculture [IITA])
+Regina Kilwenge (International Institute of Tropical Agriculture [IITA]), Abigail Elmido-Mabilangan (International Rice Research Institute) and Christine Kreye (International Institute of Tropical Agriculture [IITA])
 
 This work was financially supported by the Excellence in Agronomy for Sustainable Intensification and Climate Change Adaptation Initiative.
 
