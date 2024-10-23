@@ -60,11 +60,10 @@ While TRANSFORM is ready to analyze the validation data for display on the impac
 
 The KPI documentation (Saito et al., 2022) is accessible via this \textcolor{blue}{\href{https://cgspace.cgiar.org/items/624c2bf3-6887-4036-b46f-19bb6f223705}{link}}. The KPI guide provides a description of various KPIs and how to calculate them. They cover land productivity and its stability, resource use efficiency and soil health and are used across geographies, farming systems, and research and development (R&D) stages (like validation and piloting stages) (Saito et al., 2022)
 
-The graphic below shows the various stages of the data flow during validation exercise. The highlighted section (in red) is what will be highlighted in detail in this analytics document.
+The graphic below shows the various stages of the data flow during the validation exercise. The highlighted section (in red) is what will be highlighted in detail in this analytics document.
 
 ```{r intropic ,out.width="100%", echo=FALSE, fig.cap="Validation data flow stages in the EiA ecosystem: Collected validation data is cleaned and transformed then passed to the data pool and finaly impact dashboard for visualization"}
-knitr::include_graphics("./www/Logo/intro.png")
-
+knitr::include_graphics("./www/Logo/Validation Analytics Guidelines schema.png")
 ```
 
 # Validation Analysis
@@ -169,12 +168,12 @@ The obvious: are there any outliers? In general, applies to all input data. Revi
 Very likely, you will need to transform your data to be able to report on your KPIs. For example, the KPI is dry matter primary yield in kg per ha and the use case has recorded the fresh yield of the product in kg), the plot length and width (m), and also the moisture content (%). From this the use case can calculate the KPI as:
 
 
-$Yield (\frac{kg}{ha}) = \frac{Fresh Weight (kg) * (Moisture/100)}{(Plot Length (m) * Plot Width (m))/10000}$
+$Dry Yield (\frac{kg}{ha}) = \frac{Fresh Weight (kg) * (1-(\frac{Moisture}{100}))}{\frac{Plot Length (m) * Plot Width (m)}{10000}}$
 
 In another use case, the required KPI may be primary fresh yield in kg per ha following this calculation: 
 
 
-$Yield (\frac{kg}{ha}) = \frac{Fresh Weight (kg)}{(Plot Length (m) * Plot Width (m))/10000}$
+$Yield (\frac{kg}{ha}) = \frac{Fresh Weight (kg)}{\frac{Plot Length (m) * Plot Width (m)}{10000}}$
 
 In essence, different KPIs require different variables (explained in table 1) which require specific unit conversions and data transformations. On your data, this will require some additional steps of organizing (and transforming) it to get to the final KPI calculations.\newline
 
@@ -210,7 +209,7 @@ Description of terms used:
 
 
 
-General view indicates the simple descriptive analysis of the data to show distribution (via bar chart) and difference in the different treatments (via pie chart).
+The general view indicates the simple descriptive analysis of the data to show distribution (via bar chart) and difference in the different treatments (via pie chart).
 
 The Detailed view delves into more statistical analysis to compare the distribution using a scatter plot and also show difference in the various treatments using cumulative distribution plots and boxplots to visualize distribution of nutrient-use efficiency and water-use efficiency.
 
@@ -268,37 +267,28 @@ A preliminary visualization to compare the results from the MVP is to check the 
 `  dataHm.pp1 <- read.csv(file)`
 
 `  #Variables of interest`
-`  subset_df <- dataHm.pp1[, c("household", "region","riceSystem",
-                               "T2_yieldha","T1_yieldha","T3_yieldha", "eSSR","incrSSR" )]`
-  subset_df<-distinct(subset_df)
+`  subset_df <- dataHm.pp1[, c("region", "T2_yieldha","T1_yieldha","T3_yieldha")]`
+`  subset_df<-distinct(subset_df)`
 
 `  # Group by region and calculate the averages`
-`  averages_by_state <- subset_df %>%
-    group_by(region) %>%
-    summarise(
-      T2 = mean(T2_yieldha, na.rm = TRUE),
-      T1 = mean(T1_yieldha, na.rm = TRUE),
-      T3 = mean(T3_yieldha, na.rm = TRUE)
-    )
-  averages_by_state <- averages_by_state %>%
-    pivot_longer(!region, names_to = "Treatment", values_to = "Average")`
+`  averages_by_state <- subset_df %>%`
+`    pivot_longer(!region, names_to = "Treatment", values_to = c("Yield")) %>%`
+`    mutate(Treatment = sub("_yieldha", "", Treatment)) %>%`
+`    group_by(region, Treatment) %>%`
+`    summarise(Average = mean(Yield, na.rm = TRUE),`
+`              Error = sd(Yield, na.rm = TRUE))`
 
-`  #plot data`
-`  ggplot(
-    averages_by_state, 
-    aes(
-      fill=Treatment,
-      y=Average, x=region 
-    )) +  
-    geom_bar(position="dodge", stat="identity") +  
-    xlab("Location") +
-    ylab(" Average grain yield (t/ha)") +  
-    scale_fill_manual(values = c("T2" = "#004080",
-                                 "T1" = "#4caf50",
-                                 "T3" = "#c26e60")) +  
-    #theme as defined at start
-    them2
-`
+`  # Plot data`
+`  ggplot(`
+`    averages_by_state,`
+`    aes(fill=Treatment, y=Average, x=region)) +`
+`    geom_bar(position="dodge", stat="identity") +`
+`    geom_errorbar(aes(x = region, ymin=Average-Error, ymax=Average+Error), width=.2, position=position_dodge(.9)) +`
+`    xlab("Location") +`
+`  ylab(" Average grain yield (t/ha)") +`
+`  scale_fill_manual(values = c("T2" = "#004080", "T1" = "#4caf50", "T3" = "#c26e60")) +`
+`  # Theme as defined at the start`
+`  them2`
 
 ```
 
@@ -311,34 +301,30 @@ file <- "./samples/sampledata/sample_Yieldiff.csv"
 dataHm.pp1 <- read.csv(file)
 
 #Variables of interest
-subset_df <- dataHm.pp1[, c("household", "region","riceSystem",
-                            "T2_yieldha","T1_yieldha","T3_yieldha",
-                            "eSSR","incrSSR" )]
+subset_df <- dataHm.pp1[, c("region", "T2_yieldha","T1_yieldha","T3_yieldha")]
 subset_df<-distinct(subset_df)
 
 # Group by region and calculate the averages
 averages_by_state <- subset_df %>%
-  group_by(region) %>%
-  summarise(
-    T2 = mean(T2_yieldha, na.rm = TRUE),
-    T1 = mean(T1_yieldha, na.rm = TRUE),
-    T3 = mean(T3_yieldha, na.rm = TRUE)
-  )
-averages_by_state <- averages_by_state %>%
-  pivot_longer(!region, names_to = "Treatment", values_to = "Average")
+  pivot_longer(!region, names_to = "Treatment", values_to = c("Yield")) %>%
+  mutate(Treatment = sub("_yieldha", "", Treatment)) %>%
+  group_by(region, Treatment) %>%
+  summarise(Average = mean(Yield, na.rm = TRUE),
+            Error = sd(Yield, na.rm = TRUE))
 
 #plot data
 ggplot(
   averages_by_state, 
   aes(
-  fill=Treatment,
-  y=Average, x=region 
+    fill=Treatment,
+    y=Average, x=region 
   )) +  
-  geom_bar(position="dodge", stat="identity") +  
+  geom_bar(position="dodge", stat="identity") +
+  geom_errorbar(aes(x = region, ymin=Average-Error, ymax=Average+Error), width=.2, position=position_dodge(.9))+
   xlab("Location") +
   ylab(" Average grain yield (t/ha)") +  
   scale_fill_manual(values = c("T2" = "#004080", "T1" = "#4caf50", "T3" = "#c26e60")) +  
-  #theme as defined at start
+  # Theme as defined at start
   them2
 
 ```
@@ -503,7 +489,7 @@ ggplot(
 
 \newpage
 
-Cumulative distributions allow to see which probability of the sample distribute across negative and positive impacts. This allows to better understand how treatments compare and across the probability distributions.
+Cumulative distributions allow to see which probability of the sample distribute across negative and positive impacts. Positive values indicate better performance of the technology (T1) vs the reference treatment (T2), and negative values indicate trials that have worse results for the new technology (T1) vs the reference treatment (T2). We add the upper and lower boundaries of a 95% confidence interval to better understand how treatments compare and across the probability distributions. 
 
 ```{r t4, echo = TRUE, results = FALSE, out.width = "0%"}
 
@@ -515,18 +501,30 @@ Cumulative distributions allow to see which probability of the sample distribute
 `  # Read the data`
 `  yieldiff <- read.csv(file)`
 
+`  # Calculate and add the empirical cumulative probability from the`
+`  # empirical cumulative distribution function (eCDF) and add the upper`
+`  # and lower 95% confidence intervals`
+`  yieldiff <- yieldiff[,c("region", "riceSystem", "eSSR")] %>%`
+`    group_by(region, riceSystem) %>%`
+`    arrange(region, riceSystem, eSSR) %>%`
+`    mutate(N = n(),`
+`           ecdf = ecdf(eSSR)(eSSR),`
+`           sd = sqrt(log(2/0.05)/(2*N)),`
+`           lower = pmax(1:N/N-sd, 0),`
+`           upper = pmin(1:N/N+sd, 1))`
+
 `  # Plot the data`
-`  p1 <- ggplot(yieldiff, aes(eSSR, ecdf, colour=riceSystem))`
-`  p1 + geom_point(size=1) +
-    geom_ribbon(aes(ymin = lower,
-                    ymax = upper),
-                alpha=.2) +
-    geom_vline(xintercept = 0, size = 0.5, colour = "grey") +
-    xlab("Yield difference (T1 - T2) (t/ha)") +
-    labs(title="Comparison of yields for site-specific (T1) and control (T2)") +
-    ylab("Cumulative probability") +
-    facet_wrap(~region) +
-    them2`
+`  ggplot(yieldiff, aes(eSSR, ecdf, colour=riceSystem)) +`
+`    geom_point() +`
+`    geom_ribbon(aes(ymin = lower,`
+`                    ymax = upper),`
+`                alpha=.2) +`
+`    geom_vline(xintercept = 0, size = 0.5, colour = "grey")+`
+`    xlab("Yield difference (T1 - T2) (t/ha)") +`
+`    labs(title="Comparison of yields for site-specific (T1) and control (T2)")+`
+`    ylab("Cumulative probability") +`
+`    facet_wrap(~region)+`
+`    them2`
 ```
 
 
@@ -542,13 +540,21 @@ file <- "./samples/sampledata/sample_Yieldiff.csv"
 # Read the data
 yieldiff <- read.csv(file)
 
+yieldiff <- yieldiff[,c("region", "riceSystem", "eSSR")] %>% 
+  group_by(region, riceSystem) %>% 
+  arrange(region, riceSystem, eSSR) %>%
+  mutate(N = n(),
+         ecdf = ecdf(eSSR)(eSSR),
+         sd = sqrt(log(2/0.05)/(2*N)),
+         lower = pmax(1:N/N-sd, 0),
+         upper = pmin(1:N/N+sd, 1))
+
 #plot the data
-p1 <- ggplot(yieldiff, aes(eSSR, ecdf, colour=riceSystem))
-p1+geom_point(size=1)+
+ggplot(yieldiff, aes(eSSR, ecdf, colour=riceSystem)) +
+  geom_point() + 
   geom_ribbon(aes(ymin = lower,
-                  ymax = upper,
-  ),
-  alpha=.2)+
+                  ymax = upper),
+              alpha=.2) +
   geom_vline(xintercept = 0, size = 0.5, colour = "grey")+
   xlab("Yield difference (T1 - T2) (t/ha)") +
   labs(title="Comparison of yields for site-specific (T1) and control (T2)")+
@@ -579,23 +585,25 @@ The following code illustrates how to visualize Nutrient-Use Efficiency, Water-U
 `  dataHNm.nn1 <- read.csv(file)`
 
 `  # Variables of interest`
-`  nue_df <- dataHNm.nn1[, c( "Region", "plot" , "useN" )]`
-
+`  nue_df <- dataHNm.nn1[, c("Region", "plot", "useN")]`
 `  # Transform data and calculate average by group`
-`  nue_df <- distinct(nue_df)`
-`  nue_by_state <- nue_df %>%
-    group_by(Region, plot) %>%
-    summarise(avg_useN = mean(useN, na.rm = TRUE))`
+`  nue_df<-distinct(nue_df)`
+
+`  # Group by region and calculate the averages`
+`  nue_by_state <- nue_df %>%`
+`    group_by(Region, plot) %>%`
+`    summarise(Average = mean(useN, na.rm = TRUE),`
+`              Error = sd(useN, na.rm = TRUE))`
 
 `  # Plot the data`
-`  ggplot(
-    nue_by_state, 
-    aes(fill = plot, y = avg_useN, x = Region)) + 
-    geom_bar(position = "dodge", stat = "identity") +  
-    xlab("Location") +  
-    ylab("Average (Kg grain per kg applied N))") +  
-    scale_fill_manual(values = c("T2" = "#004080", "T1" = "#4caf50", "T3" = "#c26e60")) +  
-    them2`
+`  ggplot(nue_by_state,`
+`         aes(fill=plot, y=Average, x=Region)) +`
+`    geom_bar(position="dodge", stat="identity") +`
+`    geom_errorbar(aes(x = Region, ymin=Average-Error, ymax=Average+Error), width=.2, position=position_dodge(.9)) +`
+`    xlab("Location") +`
+`    ylab("Average (Kg grain per kg applied N))") +`
+`    scale_fill_manual(values = c("T2" = "#004080", "T1" = "#4caf50", "T3" = "#c26e60")) +`
+`    them2`
 ```
 
 
@@ -608,25 +616,27 @@ The following code illustrates how to visualize Nutrient-Use Efficiency, Water-U
 file <- "./samples/sampledata/sample_nue_data.csv"
 # Read the data
 dataHNm.nn1 <- read.csv(file)
+
 #Variables of interest
-nue_df <- dataHNm.nn1[, c( "Region", "plot"   ,     "useN" )]
+nue_df <- dataHNm.nn1[, c("Region", "plot", "useN")]
 #Transform data and calculate average by group
 nue_df<-distinct(nue_df)
+
+# Group by region and calculate the averages
 nue_by_state <- nue_df %>%
   group_by(Region, plot) %>%
-  summarise(avg_useN = mean(useN, na.rm = TRUE))
+  summarise(Average = mean(useN, na.rm = TRUE),
+            Error = sd(useN, na.rm = TRUE))
 
 #Plot the data
-ggplot(
-  nue_by_state, 
-  aes(fill=plot, y=avg_useN, x=Region)
-) + 
+ggplot(nue_by_state,
+       aes(fill=plot, y=Average, x=Region)) + 
   geom_bar(position="dodge", stat="identity") +  
+  geom_errorbar(aes(x = Region, ymin=Average-Error, ymax=Average+Error), width=.2, position=position_dodge(.9)) +
   xlab("Location") +  
   ylab("Average (Kg grain per kg applied N))") +  
   scale_fill_manual(values = c("T2" = "#004080", "T1" = "#4caf50", "T3" = "#c26e60")) +  
   them2
-
 
 ```
 
@@ -678,7 +688,7 @@ Saito K, Johnson J-M, Hauser S, Corbeels M, Devkota M and Casimero M. 2022. Guid
 
 # Contributors
 
-Regina Kilwenge (International Institute of Tropical Agriculture [IITA]), Eduardo Garcia (International Institute of Tropical Agriculture [IITA]) and Christine Kreye (International Institute of Tropical Agriculture [IITA])
+Regina Kilwenge (International Institute of Tropical Agriculture [IITA]), Abigail Elmido-Mabilangan (International Rice Research Institute) and Christine Kreye (International Institute of Tropical Agriculture [IITA])
 
 This work was financially supported by the Excellence in Agronomy for Sustainable Intensification and Climate Change Adaptation Initiative.
 

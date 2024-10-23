@@ -19,7 +19,7 @@ them2 <- theme(panel.background = element_rect(fill = "white"), # bg of the pane
                axis.line.y = element_blank())
 #Pie
 dataHm.pp1 <- read.csv("./samples/sampledata/sample_yield_data.csv")
-subset_df <- dataHm.pp1[, c("HHID", "stateEA","riceSystem","ZCC_Yha","SSR_Yha","BRR_Yha", "eSSR","incrSSR" )]
+subset_df <- dataHm.pp1[, c("household","T1_yieldha","T2_yieldha","T3_yieldha", "eSSR","incrSSR" )]
 subset_df<-distinct(subset_df)
 x <- (subset_df[! is.na(subset_df$eSSR),] )$eSSR
 xi <- x[x<0]
@@ -41,7 +41,7 @@ plot_ly(data = ds,
 
 #Bars
 dataHNm.nn1 <- read.csv("./samples/sampledata/sample_nue_data.csv")
-nue_df <- dataHNm.nn1[, c( "stateEA", "plot"   ,     "useN" )]
+nue_df <- dataHNm.nn1[, c( "Region", "plot", "useN" )]
 nue_df<-distinct(nue_df)
 nue_by_state <- nue_df %>%
   group_by(stateEA, plot) %>%
